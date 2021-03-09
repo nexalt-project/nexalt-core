@@ -38,6 +38,7 @@
 #include <iostream>
 #include <httpserver.h>
 #include "init.h"
+#include "wallet/wallet.h"
 
 /**
  * Return average network hashes per second based on the last 'lookup' blocks,
@@ -400,6 +401,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     if (request.URI.substr(0, WALLET_ENDPOINT_BASE.size()) == WALLET_ENDPOINT_BASE) {
         wallet_name = urlDecode(request.URI.substr(WALLET_ENDPOINT_BASE.size()));
     }
+    std::shared_ptr <CWallet> pwallet = GetWallet(wallet_name);
     /*bool dbCheck=IsSponsorKeySaved(wallet_name);
     if(!dbCheck){
         throw JSONRPCError(RPC_WALLET_ERROR, "Your sponsor key is not added. Kindly add it using console command <addmlckeyraw sponsor_key>.");
@@ -555,13 +557,24 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         // Create new block
         CScript scriptDummy = CScript() << OP_TRUE;
 
+        std::shared_ptr<CReserveScript> coinbase_script;
+        pwallet->GetScriptForMining(coinbase_script);
+        // If the keypool is exhausted, no script is returned at all.  Catch this.
+        if (!coinbase_script) {
+            throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+        }
+        //throw an error if no script was provided
+        if (coinbase_script->reserveScript.empty()) {
+            throw JSONRPCError(RPC_INTERNAL_ERROR, "No coinbase script available");
+        }
+
         static const std::string WALLET_ENDPOINT_BASE = "/wallet/";
         std::string wallet_name;
         if (request.URI.substr(0, WALLET_ENDPOINT_BASE.size()) == WALLET_ENDPOINT_BASE) {
             wallet_name = urlDecode(request.URI.substr(WALLET_ENDPOINT_BASE.size()));
         }
         std::string cap_wallet_name = capabilities +"**"+wallet_name;
-        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(scriptDummy,cap_wallet_name,fSupportsSegwit);
+        pblocktemplate = BlockAssembler(Params()).CreateNewBlock(coinbase_script->reserveScript,cap_wallet_name,fSupportsSegwit);
         //pblocktemplate = BlockAssembler(Params()).CreateNewStake(true,true);
         if (!pblocktemplate)
             throw JSONRPCError(RPC_OUT_OF_MEMORY, "Out of memory");

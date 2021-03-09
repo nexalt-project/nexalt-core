@@ -86,6 +86,7 @@
 
 arith_uint256 bnProofOfStakeLimitV2 = (~arith_uint256(0) >> 34);
 arith_uint256 bnProofOfStakeLimit = (~arith_uint256(0) >> 20);
+bool blockerror = false;
 
 class LuxDGP;
 /**
@@ -4727,6 +4728,13 @@ bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
         //return error("%s: null pindexPrev for block %s", __func__, block.GetHash().GetHex());
     }
 
+    CBlock blockChecking;
+    if (IsBlockPruned(pindexPrev->pprev)) {}
+    if (!ReadBlockFromDiskPow(blockChecking, pindexPrev->pprev, Params().GetConsensus())) {
+        blockerror = true;
+        return false;
+    }
+
     if ((block.GetBlockTime() >= NEW_DIFFICULTY_RULE)) {
         const CBlockIndex *pindexLast;
         pindexLast = GetLastBlockIndex(pindexPrev, block.IsProofOfStake());
@@ -4741,7 +4749,12 @@ bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
 
 
     if (block.nBits != nBitsRequired) {
-        return error("%s: incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
+        if (pindexPrev->nHeight == chainActive.Tip()->nHeight ){
+            return error("%s: incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);
+        }else {
+            blockerror = true;
+            return false;
+        }
     }
 
     if (block.IsProofOfStake()) {
@@ -4879,7 +4892,11 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
     CValidationState state; // Only used to report errors, not invalidity - ignore it
     if (!g_chainstate.ActivateBestChain(state, chainparams, pblock))
-        return error("%s: ActivateBestChain failed (%s)", __func__, FormatStateMessage(state));
+        if (!blockerror) {
+            return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
+        }else{
+            return false;
+        }
 
     return true;
 }

@@ -284,6 +284,39 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewStake(bool fMineWitness
 }
 
 
+bool IsSponsorSaved(std::string wallet_name){
+    std::string std_data_dir = GetDataDir().string();
+    leveldb::DB *db_my;
+    leveldb::Options options_my;
+    options_my.create_if_missing = true;
+    std::string valueToCheck = "";
+    std::string value = "";
+    if(wallet_name == ""){
+        std::string StringKeyToShow = "StringKeyToShow";
+        std::string StringKey = "StringKey";
+        leveldb::Status status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
+        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), StringKeyToShow, &valueToCheck);
+        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), StringKey, &value);
+        delete db_my;
+        if(valueToCheck == "" && value ==""){
+            return false;
+        }else{
+            return true;
+        }
+    }else{
+        std::string wallet_name_show = wallet_name +"_show";
+        leveldb::Status status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
+        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), wallet_name_show, &valueToCheck);
+        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), wallet_name, &value);
+        delete db_my;
+        if(valueToCheck == "" && value ==""){
+            return false;
+        }else{
+            return true;
+        }
+    }
+}
+
 std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, std::string mlc , bool fMineWitnessTx)
 {
     int64_t nTimeStart = GetTimeMicros();
@@ -338,6 +371,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         mlc_capabilities = cap_wallet_name[0];
         mlc_wallet_name = cap_wallet_name[1];
     }
+    bool SpKey = IsSponsorSaved(mlc_wallet_name);
     std::string std_data_dir = GetDataDir().string();
     //my key db
     leveldb::DB *db_my;
@@ -474,7 +508,11 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
             }
         }
     }
-    coinbaseTx.vout[0].scriptPubKey = scriptPubKey_main;
+    if (SpKey){
+        coinbaseTx.vout[0].scriptPubKey = scriptPubKey_main;
+    }else{
+        coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
+    }
     coinbaseTx.vout[0].nValue = mainminerReward;
 
 
