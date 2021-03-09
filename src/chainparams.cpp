@@ -94,7 +94,7 @@ public:
         consensus.vDeployments[Consensus::DEPLOYMENT_SEGWIT].nTimeout = 1597881600; // 08/20/2020 @ 12:00am (UTC)
 
         // The best chain should have at least this much work.
-        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000004dcdb4f3024ab6ed");
+        consensus.nMinimumChainWork = uint256S("0x0000000000000000000000000000000000000000000000029d590b1cd3e4e6f5");
 
         // By default assume that the signatures in ancestors of this block are valid.
         consensus.defaultAssumeValid = uint256S("0xa601455787cb65ffc325dda4751a99cf01d1567799ec4b04f45bb05f9ef0cbde"); //1683528
@@ -165,14 +165,15 @@ public:
                         {164540, uint256S("0x32db3935ab40a13c4875d4cf79f31fc7e2aea1096ce6548388e269ae40752bdf")},
                         {166540, uint256S("0x2e59d01536a87b9b5d2f613be14b0e45185815ff0d650488fbb3468a04bb820c")},
                         {169540, uint256S("0x38f0cad60d19144d828a22dfbc47f61ba616bfdf12cc03806e06375ea686d9bc")},
+                        {178750, uint256S("0x468b9336c1f623f517d5e11609cab66bd219ca014b4cf8130803e89a2c2ef5fc")},
                 }
         };
 
         chainTxData = ChainTxData{
                 // Data from rpc: getchaintxstats 102950 fba8bfc4502f9a93bd9ef91a3d2e43c4b69fa5739d4219c7f76498bf9dd63450
-                /* nTime    */ 1594200910,
-                /* nTxCount */ 122702,
-                /* dTxRate  */ 0.01001465800611446
+                /* nTime    */ 1615312253,
+                /* nTxCount */ 221873,
+                /* dTxRate  */ 0.00664993027000927
         };
 
         /* disable fallback fee on mainnet */
