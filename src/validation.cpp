@@ -4090,6 +4090,12 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
     if (!tx.IsCoinBase() && !tx.IsCoinStake())
         return true;
 
+    
+    // coinbase transactions don't have to share anything with masternodes
+    if(tx.IsCoinBase())
+        return true;
+        
+        
     const CChainParams& chainParams = Params();
 
     // Special check for genesis block, which is guaranteed to not have a masternode payment
@@ -4140,7 +4146,7 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
             totalReward += txout.nValue;
         }
     }
-    LogPrintf("%s: totalReward = %lld\n", __func__, (long long) totalReward);
+    //LogPrintf("%s: totalReward = %lld\n", __func__, (long long) totalReward);
 
     // New block
     bool hasMasternodePayment = false;
@@ -4167,14 +4173,14 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
                 }else if (tx.IsCoinStake()){
                     masternodePayment = tx.vout[2].nValue;
                 }
-                LogPrintf("%s: masternodePayment = %lld\n", __func__, (long long) masternodePayment);
+                //LogPrintf("%s: masternodePayment = %lld\n", __func__, (long long) masternodePayment);
                 break;
             }
         }
     }
     // Divide to keep a check precision of 0.01 XLT
     CAmount mnReward = GetMasternodePosReward(nHeight, totalReward);
-    if (header.nTime > NEW_DIFFICULTY_RULE){
+    if (header.nTime > POS_REWARD_V3){
         mnReward = MasterRewardV3(nHeight);
     }
 
@@ -4194,7 +4200,7 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
     }
     // no masternode payment is found or payment amount is null
     if (!hasMasternodePayment || masternodePayment == 0) {
-        return true;
+        return false;
     }
     return (mnReward == masternodePayment);
     }else{
@@ -4472,10 +4478,10 @@ static bool ContextualCheckBlockHeader(const CBlockHeader& block, CValidationSta
     const Consensus::Params& consensusParams = params.GetConsensus();
     bool fProofOfStake = pindexPrev->IsProofOfStake() ;
 
-    if (block.nTime < START_POS_BLOCK) {
-        if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams, fProofOfStake))
+    if (START_POS_BLOCK > block.nTime) {
+        if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams, fProofOfStake)) {
             return state.DoS(100, false, REJECT_INVALID, "bad-diffbits", false, "incorrect proof of work");
-
+        }
     }
     // Check against checkpoints
     if (fCheckpointsEnabled) {
@@ -4885,7 +4891,11 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
         }
         if (!ret) {
             GetMainSignals().BlockChecked(*pblock, state);
-            return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
+            if (!blockerror) {
+                return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
+            }else{
+                return false;
+            }
         }
     }
 
@@ -4893,11 +4903,7 @@ bool ProcessNewBlock(const CChainParams& chainparams, const std::shared_ptr<cons
 
     CValidationState state; // Only used to report errors, not invalidity - ignore it
     if (!g_chainstate.ActivateBestChain(state, chainparams, pblock))
-        if (!blockerror) {
-            return error("%s: AcceptBlock FAILED (%s)", __func__, FormatStateMessage(state));
-        }else{
-            return false;
-        }
+        return error("%s: ActivateBestChain failed (%s)", __func__, FormatStateMessage(state));
 
     return true;
 }
