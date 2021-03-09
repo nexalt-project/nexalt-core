@@ -4721,6 +4721,7 @@ static CDiskBlockPos SaveBlockToDisk(const CBlock& block, int nHeight, const CCh
 
 bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
 {
+    blockerror = false;
     const CChainParams& chainParams = Params();
     const Consensus::Params& consensusParams = chainParams.GetConsensus();
     if (pindexPrev == NULL) {
@@ -4734,7 +4735,8 @@ bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
         blockerror = true;
         return false;
     }
-
+    //unsigned int nBitsRequired = GetNextWorkRequiredCheckWork(pindexPrev, block, &block, consensusParams, block.IsProofOfStake());
+    //difficulty adjustment block should be pow
     if ((block.GetBlockTime() >= NEW_DIFFICULTY_RULE)) {
         const CBlockIndex *pindexLast;
         pindexLast = GetLastBlockIndex(pindexPrev, block.IsProofOfStake());
@@ -4744,7 +4746,6 @@ bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
             }
         }
     }
-
     unsigned int nBitsRequired = GetNextWorkRequired(pindexPrev, &block, consensusParams, block.IsProofOfStake());
 
 
