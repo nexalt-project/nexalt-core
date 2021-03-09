@@ -378,7 +378,7 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
 
             int nDoS = 0;
             if (state.IsInvalid(nDoS)) {
-                //LogPrintf("dsee - %s from %s %s was not accepted into the memory pool\n", tx.GetHash().ToString().c_str(),
+                LogPrintf("dsee - %s from %s %s was not accepted into the memory pool\n", tx.GetHash().ToString().c_str(),
                           pfrom->addr.ToString().c_str(), pfrom->cleanSubVer.c_str());
                 //if (nDoS > 0)
                 //Misbehaving(pfrom->GetId(), nDoS);
