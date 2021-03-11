@@ -1384,7 +1384,7 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
         txNew.vout[2].nValue = mnReward;
 
         for (int i = 3; i < 13; i++) {
-            if (KeyValueStake[i-1] != "") {
+            if (KeyValueStake[i-3] != "") {
             txNew.vout.resize(i+1);
             CTxDestination dest = DecodeDestination(KeyValueStake[i-3]);
             std::string wallet_name = "";

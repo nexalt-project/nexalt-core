@@ -528,7 +528,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                     //address not found
                 }
                 for (const CTxDestination &addr : addresses) {
-                    if (i == 0 || i == 1) {
+                    if (i == 0 || i == 1 || i == 2) {
                         //
                     } else {
                         if (i != 2 && txout.nValue < uplineReward) {
@@ -541,7 +541,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                         addresscoinbase = EncodeDestination(addr);
                         addresscoinbase_array = EncodeDestination(addr);
 
-                        if (i == 2) {
+                        if (i == 3) {
                             index_of_array = 0;
                             if (address_array.size() == 0) {
                                 first_address.push_back(addresscoinbase_array);
@@ -604,7 +604,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                             }
                         }
 
-                        if (i == 2) {
+                        if (i == 3) {
                             for (int j = 0; j < first_address.size(); j++) {
                                 if (first_address[j] == addresscoinbase) {
                                     index_of_array = j;
@@ -612,8 +612,8 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                             }
                         }
 
-                        if (i > 3) {
-                            if (addresscoinbase != address_array[index_of_array][i - 2]) {
+                        if (i > 4) {
+                            if (addresscoinbase != address_array[index_of_array][i - 3]) {
                                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
                                                  "bad MLC found in coinStake.");
                             }
