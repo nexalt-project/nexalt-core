@@ -4356,11 +4356,11 @@ UniValue masternode(const JSONRPCRequest& request) {
         strCommand = request.params[0].get_str();
 
     if (request.fHelp ||
-        (strCommand != "start" && strCommand != "start-alias" && strCommand != "start-many" && strCommand != "stop" && strCommand != "stop-alias" && strCommand != "stop-many" &&
+        (strCommand != "start" && strCommand != "start-alias" && strCommand!="list-details" && strCommand != "start-many" && strCommand != "stop" && strCommand != "stop-alias" && strCommand != "stop-many" &&
          strCommand != "list" && strCommand != "list-conf" && strCommand != "count" && strCommand != "enforce"
          && strCommand != "debug" && strCommand != "current" && strCommand != "winners" && strCommand != "genkey" && strCommand != "connect" && strCommand != "outputs"))
         throw runtime_error(
-                "masternode <start|start-alias|start-many|stop|stop-alias|stop-many|list|list-conf|count|debug|current|winners|genkey|enforce|outputs> [passphrase]\n");
+                "masternode <start|start-alias|start-many|stop|stop-alias|stop-many|list-details|list|list-conf|count|debug|current|winners|genkey|enforce|outputs> [passphrase]\n");
 
     if (strCommand == "stop") {
         if (!fMasterNode) return "you must set masternode=1 in the configuration";
@@ -4503,6 +4503,31 @@ UniValue masternode(const JSONRPCRequest& request) {
 
         return returnObj;
 
+    }
+    if (strCommand == "list-details") {
+        UniValue entry(UniValue::VARR);
+        UniValue details(UniValue::VOBJ);
+
+        for (CMasterNode mn : vecMasternodes) {
+            UniValue mnObj(UniValue::VOBJ); //in
+            mn.Check();
+            CScript pubkey;
+            pubkey = GetScriptForDestination(mn.pubkey.GetID());
+            CTxDestination address1;
+            ExtractDestination(pubkey, address1);
+            CTxDestination address2(address1);
+            mnObj.pushKV("address", mn.addr.ToString().c_str());
+            mnObj.pushKV("status", (int) mn.IsEnabled());
+            mnObj.pushKV("vin", mn.vin.prevout.hash.ToString().c_str());
+            mnObj.pushKV("pubkey", EncodeDestination(address2));
+            mnObj.pushKV("protocol", (int64_t) mn.protocolVersion);
+            mnObj.pushKV("lastseen", (int64_t) mn.lastTimeSeen);
+            mnObj.pushKV("activeseconds", (int64_t)(mn.lastTimeSeen - mn.now));
+            mnObj.pushKV("rank", (int) (GetMasternodeRank(mn.vin, chainActive.Height())));
+            entry.push_back(mnObj);
+        }
+        details.pushKV("masternode-details", entry);
+        return details;
     }
 
     if (strCommand == "list") {
