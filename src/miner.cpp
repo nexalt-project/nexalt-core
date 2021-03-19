@@ -424,8 +424,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
             }
         }
     }
-
-    return nullptr;
+    
     int nPackagesSelected = 0;
     int nDescendantsUpdated = 0;
     addPackageTxs(nPackagesSelected, nDescendantsUpdated);
@@ -524,7 +523,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     LogPrintf("CreateNewBlock(): block weight: %u txs: %u fees: %ld sigops %d\n", GetBlockWeight(*pblock), nBlockTx, nFees, nBlockSigOpsCost);
 
 
-    uint256 hash = uint256S("9825e799f2a1f012e11b11d0d2a4166ac0524389b0493281c0778d9eb492321f");
+    uint256 hash = pindexPrev->GetBlockHash();
     pblock->hashPrevBlock = hash;
 
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
