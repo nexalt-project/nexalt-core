@@ -2063,25 +2063,22 @@ void CConnman::RelayDarkSendStatus(const int sessionID, const int newState, cons
 void CConnman::RelayDarkSendElectionEntry(const CTxIn &vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
-    std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
 
     std::vector<CNode*> vNodesCopy;
     {
-        LOCK(g_connmanM->cs_vNodes);
-        vNodesCopy = g_connmanM->vNodes;
+        LOCK(cs_vNodes);
+        vNodesCopy = vNodes;
     }
 
     for (CNode* pnode : vNodesCopy) {
         if(!pnode || !pnode->fRelayTxes) continue;
-        g_connmanM->PushMessage(pnode, msgMaker.Make("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion));
+        PushMessage(pnode, msgMaker.Make("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated, protocolVersion));
     }
 }
 
 void CConnman::SendDarkSendElectionEntry(const CTxIn &vin, const CService addr, const std::vector<unsigned char> vchSig, const int64_t nNow, const CPubKey pubkey, const CPubKey pubkey2, const int count, const int current, const int64_t lastUpdated, const int protocolVersion)
 {
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
-    //auto g_connmanM = MakeUnique<CConnman>(0x1337, 0x1337);
-    std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
 
     std::vector<CNode*> vNodesCopy;
     {
@@ -2089,9 +2086,8 @@ void CConnman::SendDarkSendElectionEntry(const CTxIn &vin, const CService addr, 
         vNodesCopy = vNodes;
     }
     for (CNode* pnode : vNodes) {
-        std::cout << "in for loop pnode in net.cpp\n";
         if (pnode) {
-            g_connmanM->PushMessage(pnode, msgMaker.Make("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated,
+            PushMessage(pnode, msgMaker.Make("dsee", vin, addr, vchSig, nNow, pubkey, pubkey2, count, current, lastUpdated,
                                                          protocolVersion));
         }
     }
@@ -2100,24 +2096,22 @@ void CConnman::SendDarkSendElectionEntry(const CTxIn &vin, const CService addr, 
 void CConnman::RelayDarkSendElectionEntryPing(const CTxIn &vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
-    std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
 
     std::vector<CNode*> vNodesCopy;
     {
-        LOCK(g_connmanM->cs_vNodes);
-        vNodesCopy = g_connmanM->vNodes;
+        LOCK(cs_vNodes);
+        vNodesCopy = vNodes;
     }
 
     for (CNode* pnode : vNodesCopy) {
         if(!pnode || !pnode->fRelayTxes) continue;
-        g_connmanM->PushMessage(pnode, msgMaker.Make("dseep", vin, vchSig, nNow, stop));
+        PushMessage(pnode, msgMaker.Make("dseep", vin, vchSig, nNow, stop));
     }
 }
 
 void CConnman::SendDarkSendElectionEntryPing(const CTxIn &vin, const std::vector<unsigned char> vchSig, const int64_t nNow, const bool stop)
 {
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
-    std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
 
     std::vector<CNode*> vNodesCopy;
     {
@@ -2127,7 +2121,7 @@ void CConnman::SendDarkSendElectionEntryPing(const CTxIn &vin, const std::vector
 
     for (CNode* pnode : vNodes) {
         if (pnode){
-            g_connmanM->PushMessage(pnode, msgMaker.Make("dseep", vin, vchSig, nNow, stop));
+            PushMessage(pnode, msgMaker.Make("dseep", vin, vchSig, nNow, stop));
         }
     }
 }
@@ -2135,26 +2129,28 @@ void CConnman::SendDarkSendElectionEntryPing(const CTxIn &vin, const std::vector
 void CConnman::RelayDarkSendCompletedTransaction(const int sessionID, const bool error, const std::string errorMessage)
 {
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
-    std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
 
     std::vector<CNode*> vNodesCopy;
     {
-        LOCK(g_connmanM->cs_vNodes);
-        vNodesCopy = g_connmanM->vNodes;
+        LOCK(cs_vNodes);
+        vNodesCopy = vNodes;
     }
 
     for (CNode* pnode : vNodesCopy) {
         if (pnode){
-            g_connmanM->PushMessage(pnode, msgMaker.Make("dsc", sessionID, error, errorMessage));
+            PushMessage(pnode, msgMaker.Make("dsc", sessionID, error, errorMessage));
         }
     }
 }
 
 void CConnman::RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
 {
-    std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
     CInv inv(MSG_TXLOCK_REQUEST, tx.GetHash());
+    ForEachNode([&inv](CNode* pnode)
+    {
+        pnode->PushInventory(inv);
+    });
     //broadcast the new node
     vector<CNode*> vNodesCopy;
     {
@@ -2167,7 +2163,6 @@ void CConnman::RelayTransactionLockReq(const CTransaction& tx, bool relayToAll)
             continue;
 
         PushMessage(pnode, msgMaker.Make("ix", tx));
-        //pnode->PushMessage("ix", tx);
     }
 }
 

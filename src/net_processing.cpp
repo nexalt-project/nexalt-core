@@ -3335,7 +3335,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
     if (!processed) masternodeSync.ProcessMessage(pfrom, strCommand, vRecv, processed);
 #   else
     if (!processed) ProcessMessageDarksend(pfrom, strCommand, vRecv, processed);
-    if (!processed) ProcessMasternode(pfrom, strCommand, vRecv, processed);
+    if (!processed) ProcessMasternode(pfrom, connman, strCommand, vRecv, processed);
     if (!processed) ProcessMasternodeConnections();
     if (!processed) ProcessInstantX(pfrom, strCommand, vRecv, processed);
     if (!processed) ProcessSpork(pfrom, strCommand, vRecv, processed);

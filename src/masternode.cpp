@@ -60,7 +60,7 @@ void ProcessMasternodeConnections() {
     }
 }
 
-void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, bool& isMasternodeCommand) {
+void ProcessMasternode(CNode* pfrom, CConnman* connman, const std::string& strCommand, CDataStream& vRecv, bool& isMasternodeCommand) {
     std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
 
     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
@@ -150,7 +150,8 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
                         mn.protocolVersion = protocolVersion;
                         mn.addr = addr;
 
-                        g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee", vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion));
+                        connman->RelayDarkSendElectionEntry(vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
+                        //g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee", vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion));
                     }
                 }
 
@@ -185,7 +186,7 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
             inputsAcceptable = AcceptableInputs(mempool, state, CTransaction(tx), false, &pfMissingInputs);
         }
         if (inputsAcceptable) {
-            //if (fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
+            if (fDebug) LogPrintf("dsee - Accepted masternode entry %i %i\n", count, current);
 
             if (GetInputAge(vin) < MASTERNODE_MIN_CONFIRMATIONS) {
                 LogPrintf("dsee - Input must have least %d confirmations\n", MASTERNODE_MIN_CONFIRMATIONS);
@@ -194,9 +195,7 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
             }
 
             // use this as a peer
-            std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
-
-            g_connmanM->addrman.Add(CAddress(addr, NODE_NETWORK), pfrom->addr, 2 * 60 * 60);
+           connman->addrman.Add(CAddress(addr, NODE_NETWORK), pfrom->addr, 2 * 60 * 60);
 
             // add our masternode
             CMasterNode mn(addr, vin, pubkey, vchSig, sigTime, pubkey2, protocolVersion);
@@ -209,7 +208,8 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
             }
 
             if (count == -1 && !isLocal){
-                g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee", vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion));
+                //g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee", vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion));
+                connman->RelayDarkSendElectionEntry(vin, addr, vchSig, sigTime, pubkey, pubkey2, count, current, lastUpdated, protocolVersion);
             }
 
         } else {
@@ -333,7 +333,6 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
 
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-        //int mncollateral = chainActive.Height()>=30000 ? 10000 : 10000;
         int mncollateral = GetMNCollateral(chainActive.Height());;
         CTxOut vout = CTxOut((mncollateral - 1) * COIN, darkSendPool.collateralPubKey);
         tx.vin.push_back(vin);
@@ -418,7 +417,7 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
                     std::string strMessage = mn.addr.ToString() + boost::lexical_cast<std::string>(sigTime) + boost::lexical_cast<std::string>(stop);
 
                     std::string errorMessage = "";
-                    if (!darkSendSigner.VerifyMessage(mn.pubkey, vchSig, strMessage, errorMessage)) {
+                    if (!darkSendSigner.VerifyMessage(mn.pubkey2, vchSig, strMessage, errorMessage)) {
                         LogPrintf("dseep - Got bad masternode address signature %s \n", vin.ToString().c_str());
                         //Misbehaving(pfrom->GetId(), 100);
                         return;
@@ -426,20 +425,21 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
 
                     mn.lastDseep = sigTime;
 
-                    //if (!mn.UpdatedWithin(MASTERNODE_MIN_DSEEP_SECONDS)) {
+                    if (!mn.UpdatedWithin(MASTERNODE_MIN_DSEEP_SECONDS)) {
                     mn.UpdateLastSeen();
                     if (stop) {
                         mn.Disable();
                         mn.Check();
                     }
-                    g_connmanM->PushMessage(pfrom, msgMaker.Make("dseep", vin, vchSig, sigTime, stop));
-                    //}
+                    //g_connmanM->PushMessage(pfrom, msgMaker.Make("dseep", vin, vchSig, sigTime, stop));
+                    connman->RelayDarkSendElectionEntryPing(vin, vchSig, sigTime, stop);
+                    }
                 }
                 return;
             }
         }
 
-        //if (fDebug) LogPrintf("dseep - Couldn't find masternode entry %s\n", vin.ToString().c_str());
+        if (fDebug) LogPrintf("dseep - Couldn't find masternode entry %s\n", vin.ToString().c_str());
 
         std::map<COutPoint, int64_t>::iterator i = askedForMasternodeListEntry.find(vin.prevout);
         if (i != askedForMasternodeListEntry.end()) {
@@ -453,7 +453,7 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
         // ask for the dsee info once from the node that sent dseep
 
         LogPrintf("dseep - Asking source node for missing entry %s\n", vin.ToString().c_str());
-        g_connmanM->PushMessage(pfrom, msgMaker.Make("dseg",vin));
+        connman->PushMessage(pfrom, msgMaker.Make("dseg",vin));
         int64_t askAgain = GetTime() + (60 * 60 * 24);
         askedForMasternodeListEntry[vin.prevout] = askAgain;
     }
@@ -494,13 +494,13 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
                 if (mn.IsEnabled()) {
                     if (fDebug) LogPrintf("dseg - Sending masternode entry - %s \n", mn.addr.ToString().c_str());
 
-                    g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
+                    connman->PushMessage(pfrom, msgMaker.Make("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
                                                                  count, i, mn.lastTimeSeen, mn.protocolVersion));
                 }
             }
             else if (vin == mn.vin) {
                 LogPrintf("dseg - Sending masternode entry - %s \n", mn.addr.ToString().c_str());
-                g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
+                connman->PushMessage(pfrom, msgMaker.Make("dsee", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
                                                              count, i, mn.lastTimeSeen, mn.protocolVersion));
                 LogPrintf("dseg - Sent 1 masternode entries to %s\n", pfrom->addr.ToString().c_str());
                 return;
@@ -545,13 +545,13 @@ void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream&
                 if (mn.IsEnabled()) {
                     if (fDebug) LogPrintf("dseg - Sending masternode entry - %s \n", mn.addr.ToString().c_str());
 
-                    g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee_block", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
+                    connman->PushMessage(pfrom, msgMaker.Make("dsee_block", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
                                                                  count, i, mn.lastTimeSeen, mn.protocolVersion));
                 }
             }
             else if (vin == mn.vin) {
                 //LogPrintf("dseg - Sending masternode entry - %s \n", mn.addr.ToString().c_str());
-                g_connmanM->PushMessage(pfrom, msgMaker.Make("dsee_block", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
+                connman->PushMessage(pfrom, msgMaker.Make("dsee_block", mn.vin, mn.addr, mn.sig, mn.now, mn.pubkey, mn.pubkey2,
                                                              count, i, mn.lastTimeSeen, mn.protocolVersion));
                 //LogPrintf("dseg - Sent 1 masternode entries to %s\n", pfrom->addr.ToString().c_str());
                 return;

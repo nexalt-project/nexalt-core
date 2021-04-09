@@ -359,6 +359,16 @@ void SendCoinsDialog::on_sendButton_clicked()
             return;
         }
 
+        QString strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
+        QString strFee = "";
+        if (ui->checkInstanTX->isChecked()) {
+            recipients[0].useInstanTX = true;
+            strFunds += " ";
+            strFunds += tr("and InstanTX");
+        } else {
+            recipients[0].useInstanTX = false;
+        }
+
         // prepare transaction for getting txFee earlier
         WalletModelTransaction currentTransaction(recipients);
         WalletModel::SendCoinsReturn prepareStatus;
@@ -384,32 +394,10 @@ void SendCoinsDialog::on_sendButton_clicked()
 
         CAmount txFee = currentTransaction.getTransactionFee();
 
-    QString strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
-    QString strFee = "";
-    recipients[0].inputType = ONLY_DENOMINATED;
 
-    /*if (ui->checkUseDarksend->isChecked()) {
-        recipients[0].inputType = ONLY_DENOMINATED;
-        strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
-        QString strNearestAmount(
-                BitcoinUnits::formatWithUnit(
-                        model->getOptionsModel()->getDisplayUnit(), 0.1 * COIN));
-        strFee = QString(tr(
-                "(darksend requires this amount to be rounded up to the nearest %1).")
-                                 .arg(strNearestAmount));
-    } else {*/
         recipients[0].inputType = ALL_COINS;
         strFunds = tr("using") + " <b>" + tr("any available funds (not recommended)") + "</b>";
-    //}
 
-
-    if (ui->checkInstanTX->isChecked()) {
-        recipients[0].useInstanTX = true;
-        strFunds += " ";
-        strFunds += tr("and InstanTX");
-    } else {
-        recipients[0].useInstanTX = false;
-    }
 
         // Format confirmation message
         QStringList formatted;

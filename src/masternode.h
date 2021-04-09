@@ -62,7 +62,7 @@ extern map<int64_t, uint256> mapCacheBlockHashes;
 void ProcessMasternodeConnections();
 int CountMasternodesAboveProtocol(int protocolVersion);
 
-void ProcessMasternode(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, bool &isMasternodeCommand);
+void ProcessMasternode(CNode* pfrom, CConnman* connman, const std::string& strCommand, CDataStream& vRecv, bool &isMasternodeCommand);
 
 //
 // The Masternode Class. For managing the darksend process. It contains the input of the 1000Lux, signature to prove

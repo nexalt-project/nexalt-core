@@ -613,6 +613,7 @@ void CDarkSendPool::Check() {
 
     // If we have all of the signatures, try to compile the transaction
     if (state == POOL_STATUS_SIGNING && SignaturesComplete()) {
+        std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
         if (fDebug) LogPrintf("CDarkSendPool::Check() -- SIGNING\n");
         UpdateState(POOL_STATUS_TRANSMISSION);
 
@@ -633,7 +634,7 @@ void CDarkSendPool::Check() {
 
                     // not much we can do in this case
                     UpdateState(POOL_STATUS_ACCEPTING_ENTRIES);
-                    //RelayDarkSendCompletedTransaction(sessionID, true, "Transaction not valid, please try again");
+                    g_connmanM->RelayDarkSendCompletedTransaction(sessionID, true, "Transaction not valid, please try again");
                     return;
                 }
 
@@ -678,7 +679,7 @@ void CDarkSendPool::Check() {
                 txNew.RelayWalletTransaction(*locked_chain, nullptr);
 
                 // Tell the clients it was successful
-                //RelayDarkSendCompletedTransaction(sessionID, false, _("Transaction created successfully."));
+                g_connmanM->RelayDarkSendCompletedTransaction(sessionID, false, _("Transaction created successfully."));
 
                 // Randomly charge clients
                 ChargeRandomFees();
