@@ -203,7 +203,7 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewStake(bool fMineWitness
         UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev, fProofOfStake);
 
     //difficulty adjustment block should be pow
-    if ((pblock->GetBlockTime() >= NEW_DIFFICULTY_RULE)) {
+    if ((pblock->GetBlockTime() >= NEW_DIFFICULTY_RULE && pblock->GetBlockTime() < START_POS_ALL)) {
         const CBlockIndex *pindexLast;
         const CChainParams &chainParams = Params();
         pindexLast = GetLastBlockIndex(pindexPrev, fProofOfStake);

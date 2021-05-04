@@ -4743,7 +4743,7 @@ bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
     }
     //unsigned int nBitsRequired = GetNextWorkRequiredCheckWork(pindexPrev, block, &block, consensusParams, block.IsProofOfStake());
     //difficulty adjustment block should be pow
-    if ((block.GetBlockTime() >= NEW_DIFFICULTY_RULE)) {
+    if ((block.GetBlockTime() >= NEW_DIFFICULTY_RULE && block.GetBlockTime() < START_POS_ALL)) {
         const CBlockIndex *pindexLast;
         pindexLast = GetLastBlockIndex(pindexPrev, block.IsProofOfStake());
         if ((pindexPrev->nHeight + 1) % consensusParams.DifficultyAdjustmentInterval() == 0) {
