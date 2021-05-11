@@ -110,7 +110,7 @@ public:
         pchMessageStart[3] = 0xec;
         nDefaultPort = 55786;
         nPruneAfterHeight = 100000;
-        m_assumed_blockchain_size = 15;
+        m_assumed_blockchain_size = 10;
         m_assumed_chain_state_size = 3;
         nMasternodeCountDrift = 20;
         nMaxReorganizationDepth = 100;
@@ -231,10 +231,19 @@ public:
         m_assumed_blockchain_size = 2;
         m_assumed_chain_state_size = 1;
 
-        genesis = CreateGenesisBlock(1580601602, 2086557703, 0x1e0ffff0, 1, 50 * COIN);
+        nMasternodeCountDrift = 20;
+        nMaxReorganizationDepth = 100;
+        nFirstSCBlock = 170000;
+
+        nStakingRoundPeriod = 2.5 * 60;; // 2 minutes a round
+        nStakingInterval = 220;
+        nStakingMinAge = 6 * 60 *60;
+        nMaturity = 100;
+
+        genesis = CreateGenesisBlock(1613972198, 2084759518, 0x1e0ffff0, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
         assert(consensus.hashGenesisBlock ==
-               uint256S("0xd4f99f684bca3f717ce78f6b75ef4d77a9228a91eb472fc09d647e9007195566"));
+        uint256S("0x8c6dfcc3b6b5ae8ef6f307655bf1ca5aa79cb90137f75a8d15f9c3ddb20897f1"));
         assert(genesis.hashMerkleRoot ==
                uint256S("0x9a9d43fe8ca34a211028618a53782000ec0f382bededc0d5e283667b9d08f043"));
 
@@ -262,13 +271,14 @@ public:
 
         checkpointData = {
                 {
-                        {0, uint256S("42719c5788ceee8ff2b6f26f0cd710b3c069eb4a5c755642123d1206d2720df9")},
+                        {0, uint256S("8c6dfcc3b6b5ae8ef6f307655bf1ca5aa79cb90137f75a8d15f9c3ddb20897f1")},
+                        {4, uint256S("8e68c6a34e5837e59606b7b2036e39b8231bbf518cc4f123757480a0151cc1eb")},
                 }
         };
 
         chainTxData = ChainTxData{
                 // Data from rpc: getchaintxstats 4096 438b7e1c86f58b4e62e8cf2d0f9f256e3dddaebc5d1cc568e633a38e0db6c025
-                /* nTime    */ 1579031503,
+                /* nTime    */ 1613972198,
                 /* nTxCount */ 0,
                 /* dTxRate  */ 0
         };

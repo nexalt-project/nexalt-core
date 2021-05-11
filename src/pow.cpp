@@ -42,7 +42,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
             unsigned int nProofOfWorkLimit = UintToArith256(params.powLimit).GetCompact();
             // Only change once per difficulty adjustment interval
-            if ((pblock->GetBlockTime() >= NEW_DIFFICULTY_RULE)) {
+            bool newRule;
+            if (Params().NetworkIDString() == CBaseChainParams::TESTNET) {
+                newRule = pblock->GetBlockTime() >= 1615204461;
+            }
+            else {
+                newRule = pblock->GetBlockTime() >= NEW_DIFFICULTY_RULE;
+            }
+            if (newRule) {
 
                 if ((difficultyAdjustment->nHeight + 1) % params.DifficultyAdjustmentInterval() != 0) {
                     if (params.fPowAllowMinDifficultyBlocks) {

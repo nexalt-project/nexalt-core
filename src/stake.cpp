@@ -527,7 +527,7 @@ bool Stake::CheckHashNew(const CBlockIndex* pindexPrev, unsigned int nBits, cons
 
     // Beware, txPrev.nTime seen at 0 during -reindex
     uint32_t nTimeTxPrev;
-    if (START_POS_ALL > nTimeTx){
+    if (START_POS_ALL > nTimeTx && Params().NetworkIDString() == CBaseChainParams::MAIN){
         nTimeTxPrev = txPrev.nLockTime ? txPrev.nLockTime : nTimeBlockFrom;
     }else{
         nTimeTxPrev = txPrev.nTime ? txPrev.nTime : nTimeBlockFrom;
@@ -585,10 +585,10 @@ bool Stake::CheckHashNew(const CBlockIndex* pindexPrev, unsigned int nBits, cons
 
 
 
-    /*if (IsTestNet() && (hashProofOfStake / bnWeight) > bnTarget) {
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET && (UintToArith256(hashProofOfStake) / bnWeight) > bnTarget) {
         // 95150-103600 was testing branch, >= 105750 / 0x10000
         return (pindexPrev->nHeight + 1) < 105750;
-    }*/
+    }
 
     /* Now check if proof-of-stake hash meets target protocol.
        NOTE: coinstake must meet hash target based on our new protocol.
@@ -669,7 +669,8 @@ bool Stake::isSpeedAccepted(CBlock prevBlock, CBlock& prev1Block, int& height, i
     if (!getPrevBlock(prevBlock, prev1Block, height))
     {
         pos_debug("POS: Block %u is accepted\n", nBlockHeight);
-        //return true;
+        if (Params().NetworkIDString() == CBaseChainParams::TESTNET)
+            return true;
     }
 
     unsigned int prev1Time = prev1Block.GetBlockTime();

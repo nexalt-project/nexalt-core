@@ -517,7 +517,7 @@ vector<COutput> CActiveMasternode::SelectCoinsMasternode() {
 
 // get all possible outputs for running masternode for a specific pubkey
 vector <COutput> CActiveMasternode::SelectCoinsMasternodeForPubKey(std::string collateralAddress) {
-    static const int64_t DARKSEND_COLLATERAL = (10000*COIN); //10000 XLT
+    static const int64_t DARKSEND_COLLATERAL = GetMNCollateral(chainActive.Height()) * COIN; //(10000*COIN); //10000 XLT
     CTxDestination address = DecodeDestination(collateralAddress);
     CScript scriptPubKey = GetScriptForDestination(address);
     vector <COutput> vCoins;

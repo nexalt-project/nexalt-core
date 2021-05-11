@@ -33,6 +33,8 @@
 
 #include <atomic>
 
+#include "chainparams.h"
+#include <chainparamsbase.h>
 //#include <boost/unordered_map.hpp>
 
 /**
@@ -153,7 +155,7 @@ static const int64_t DARKSEND_COLLATERAL = (10000*COIN); //10000 XLT
 static const int64_t DARKSEND_FEE = (0.002*COIN); // reward masternode
 static const int64_t DARKSEND_POOL_MAX = (1999999.99*COIN);
 inline int64_t GetMNCollateral(int nHeight) {
-    //if (IsTestNet() || Params().NetworkID() == CBaseChainParams::SEGWITTEST || Params().NetworkID() == CBaseChainParams::REGTEST) return 50;
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET ) return 50;
     return nHeight>=30000 ? 10000 : 10000;
 }
 

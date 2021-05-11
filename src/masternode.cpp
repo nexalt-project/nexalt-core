@@ -881,7 +881,7 @@ void CMasterNode::Check(bool forceCheck) {
     if (!unitTest) {
         CValidationState state;
         CMutableTransaction tx = CMutableTransaction();
-        int mncollateral = chainActive.Height()>=30000 ? 10000 : 10000;
+        int mncollateral = GetMNCollateral(chainActive.Height());
         CTxOut vout = CTxOut((mncollateral - 1) * COIN, darkSendPool.collateralPubKey);
         tx.vin.push_back(vin);
         tx.vout.push_back(vout);

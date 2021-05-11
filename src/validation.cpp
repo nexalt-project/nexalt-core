@@ -4209,7 +4209,11 @@ bool CheckForMasternodePayment(const CTransaction& tx, const CBlockHeader& heade
 }
 
 bool IsMagicBlock(int nHeight){
-    if(nHeight > 175000){
+    int magicblockStartHeight = 175000;
+    if (Params().NetworkIDString() == CBaseChainParams::TESTNET ){
+        magicblockStartHeight = 0;
+    }
+    if(nHeight > magicblockStartHeight){
         int magicNumber = 555 ;
         int result = nHeight % magicNumber;
         if(result == 0){
@@ -4735,20 +4739,23 @@ bool CheckWork(const CBlock &block, CBlockIndex* pindexPrev)
         //return error("%s: null pindexPrev for block %s", __func__, block.GetHash().GetHex());
     }
 
-    CBlock blockChecking;
-    if (IsBlockPruned(pindexPrev->pprev)) {}
-    if (!ReadBlockFromDiskPow(blockChecking, pindexPrev->pprev, Params().GetConsensus())) {
-        blockerror = true;
-        return false;
-    }
-    //unsigned int nBitsRequired = GetNextWorkRequiredCheckWork(pindexPrev, block, &block, consensusParams, block.IsProofOfStake());
-    //difficulty adjustment block should be pow
-    if ((block.GetBlockTime() >= NEW_DIFFICULTY_RULE && block.GetBlockTime() < START_POS_ALL)) {
-        const CBlockIndex *pindexLast;
-        pindexLast = GetLastBlockIndex(pindexPrev, block.IsProofOfStake());
-        if ((pindexPrev->nHeight + 1) % consensusParams.DifficultyAdjustmentInterval() == 0) {
-            if (block.IsProofOfStake()) {
-                return false;
+    bool skipCheckSig = pindexPrev->pprev == nullptr && pindexPrev->nHeight == 0;
+    if (!skipCheckSig) {
+        CBlock blockChecking;
+        if (IsBlockPruned(pindexPrev->pprev)) {}
+        if (!ReadBlockFromDiskPow(blockChecking, pindexPrev->pprev, Params().GetConsensus())) {
+            blockerror = true;
+            return false;
+        }
+        //unsigned int nBitsRequired = GetNextWorkRequiredCheckWork(pindexPrev, block, &block, consensusParams, block.IsProofOfStake());
+        //difficulty adjustment block should be pow
+        if ((block.GetBlockTime() >= NEW_DIFFICULTY_RULE && block.GetBlockTime() < START_POS_ALL)) {
+            const CBlockIndex *pindexLast;
+            pindexLast = GetLastBlockIndex(pindexPrev, block.IsProofOfStake());
+            if ((pindexPrev->nHeight + 1) % consensusParams.DifficultyAdjustmentInterval() == 0) {
+                if (block.IsProofOfStake()) {
+                    return false;
+                }
             }
         }
     }
