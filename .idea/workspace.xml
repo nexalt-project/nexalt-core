@@ -30,16 +30,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="60a0750d-3cc2-4bf6-ad09-c84ebe765e3c" name="Default Changelist" comment="masternodes and pos updated">
+    <list default="true" id="60a0750d-3cc2-4bf6-ad09-c84ebe765e3c" name="Default Changelist" comment="testnet added">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/darksend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/darksend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/masternode.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/masternode.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/masternode.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/masternode.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/masternodeconfig.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/masternodeconfig.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/net.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/net.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/configure.ac" beforeDir="false" afterPath="$PROJECT_DIR$/configure.ac" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chainparams.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/chainparams.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chainparams.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/chainparams.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/consensus/tx_verify.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/consensus/tx_verify.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/miner.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/miner.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/net_processing.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/net_processing.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/qt/sendcoinsdialog.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/sendcoinsdialog.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rpc/mining.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mining.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/stake.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/stake.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/validation.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/validation.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/version.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/version.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,8 +72,18 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
-  <component name="GithubDefaultAccount">
-    <option name="defaultAccountId" value="0dc821c2-3f63-4aac-aa46-adc11afdc7f7" />
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/validation.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/pow.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/rpc/blockchain.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/net_processing.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/contrib/seeds/nodes_test.txt" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/validation.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/rpc/mining.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/stake.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/miner.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/chainparams.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/chainparams.cpp" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="ProjectId" id="1mgokV1DrKTDHcR1FofoyV4nkPY" />
   <component name="ProjectViewState">
@@ -81,9 +93,11 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.advertisement.text.has.clang-format" value="true" />
     <property name="cf.first.check.clang-format" value="false" />
+    <property name="cidr.known.project.marker" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
@@ -117,6 +131,59 @@
       <workItem from="1617955851250" duration="1779000" />
       <workItem from="1617969960296" duration="1029000" />
       <workItem from="1617971960049" duration="345000" />
+      <workItem from="1620195130547" duration="10000" />
+      <workItem from="1620195216728" duration="219000" />
+      <workItem from="1620514309286" duration="829000" />
+      <workItem from="1620626115151" duration="944000" />
+      <workItem from="1620630434917" duration="226000" />
+      <workItem from="1620631317565" duration="1888000" />
+      <workItem from="1620633613561" duration="1998000" />
+      <workItem from="1620635652386" duration="5225000" />
+      <workItem from="1620640928457" duration="2161000" />
+      <workItem from="1620643300555" duration="1547000" />
+      <workItem from="1620646046900" duration="803000" />
+      <workItem from="1620666959212" duration="249000" />
+      <workItem from="1620667296330" duration="4451000" />
+      <workItem from="1620671968193" duration="633000" />
+      <workItem from="1620710070947" duration="1853000" />
+      <workItem from="1620712021725" duration="1699000" />
+      <workItem from="1620713838139" duration="1754000" />
+      <workItem from="1620715665482" duration="1863000" />
+      <workItem from="1620717659576" duration="1766000" />
+      <workItem from="1620719491201" duration="1557000" />
+      <workItem from="1621244819937" duration="1798000" />
+      <workItem from="1621246646608" duration="1537000" />
+      <workItem from="1621248452584" duration="1133000" />
+      <workItem from="1621250600298" duration="1674000" />
+      <workItem from="1621253163673" duration="1745000" />
+      <workItem from="1621255032129" duration="1931000" />
+      <workItem from="1621258236742" duration="1722000" />
+      <workItem from="1621260109306" duration="686000" />
+      <workItem from="1621314964765" duration="1695000" />
+      <workItem from="1621316846695" duration="912000" />
+      <workItem from="1621320265988" duration="1743000" />
+      <workItem from="1621322044134" duration="1044000" />
+      <workItem from="1621323966620" duration="468000" />
+      <workItem from="1621326754138" duration="1240000" />
+      <workItem from="1621329054062" duration="1785000" />
+      <workItem from="1621331224388" duration="1823000" />
+      <workItem from="1621333069307" duration="1787000" />
+      <workItem from="1621334878967" duration="1788000" />
+      <workItem from="1621336700250" duration="2911000" />
+      <workItem from="1621339654763" duration="1786000" />
+      <workItem from="1621341658122" duration="1788000" />
+      <workItem from="1621343471805" duration="1788000" />
+      <workItem from="1621345305564" duration="1778000" />
+      <workItem from="1621347347260" duration="1791000" />
+      <workItem from="1621349159604" duration="1460000" />
+      <workItem from="1621351287594" duration="1298000" />
+      <workItem from="1621401317001" duration="2006000" />
+      <workItem from="1621403419332" duration="1711000" />
+      <workItem from="1621419030069" duration="1784000" />
+      <workItem from="1621421085560" duration="1826000" />
+      <workItem from="1621422979710" duration="1484000" />
+      <workItem from="1621424857824" duration="1848000" />
+      <workItem from="1621426838815" duration="629000" />
     </task>
     <task id="LOCAL-00001" summary="masternodes and pos updated">
       <created>1609926691775</created>
@@ -125,7 +192,14 @@
       <option name="project" value="LOCAL" />
       <updated>1609926691775</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="testnet added">
+      <created>1620720614780</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1620720614780</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -145,7 +219,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="masternodes and pos updated" />
-    <option name="LAST_COMMIT_MESSAGE" value="masternodes and pos updated" />
+    <MESSAGE value="testnet added" />
+    <option name="LAST_COMMIT_MESSAGE" value="testnet added" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -154,6 +229,16 @@
           <url>file://$PROJECT_DIR$/src/masternode.cpp</url>
           <line>227</line>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/core_write.cpp</url>
+          <line>178</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/rpc/rawtransaction.cpp</url>
+          <line>125</line>
+          <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

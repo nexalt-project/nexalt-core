@@ -1852,6 +1852,8 @@ void static ProcessOrphanTx(CConnman* connman, std::set<uint256>& orphan_work_se
 
 bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStream& vRecv, int64_t nTimeReceived, const CChainParams& chainparams, CConnman* connman, const std::atomic<bool>& interruptMsgProc, bool enable_bip61)
 {
+    int nheightToBan = Params().GetConsensus().nLastPOWBlock;
+    int versionToBan = 70018;
     LogPrint(BCLog::NET, "received: %s (%u bytes) peer=%d\n", SanitizeString(strCommand), vRecv.size(), pfrom->GetId());
     if (gArgs.IsArgSet("-dropmessagestest") && GetRand(gArgs.GetArg("-dropmessagestest", 0)) == 0)
     {
@@ -1948,7 +1950,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             assert(pindexPrev != nullptr);
             nHeight = pindexPrev->nHeight;
         }
-        if(nHeight > 110556 && nVersion <= 70017 && nTime >= START_POS_ALL){
+        if(nHeight > nheightToBan && nVersion <= versionToBan && nTime >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2125,7 +2127,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 &&  nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan &&  nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2338,7 +2340,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2412,7 +2414,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2475,7 +2477,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2559,7 +2561,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2717,7 +2719,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -2954,7 +2956,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -3041,7 +3043,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -3080,7 +3082,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <= 70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <= versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;
@@ -3196,7 +3198,7 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             nHeight = pindexPrev->nHeight;
         }
         int64_t nNow = GetAdjustedTime();
-        if(nHeight > 110556 && pfrom->nVersion <=  70017 && nNow >= START_POS_ALL){
+        if(nHeight > nheightToBan && pfrom->nVersion <=  versionToBan && nNow >= START_POS_ALL){
             Misbehaving(pfrom->GetId(), 100);
             pfrom->fDisconnect = true;
             return false;

@@ -76,6 +76,60 @@ vector <string> explode_raw_tx_verify(const string &delimiter, const string &str
     return arr;
 }
 
+std::vector<std::string> HexAddr = { "58374348377031714153313152544a345877566667514c36454d7456386874597866",
+                                          "5839584177354e6a33625571333765484b6d59506e755764793555386e6b6b42664b",
+                                          "57753971535a7a63466963506e4e6f33735a394c435a47706d526d4b7a7446384e6a",
+                                          "583765467070355062544b5462796178793646376e326865736564346234726d6e52",
+                                          "5779684c4c503938504b5a724e53786b61316a577471394e4676564662596d4e7345",
+                                          "57744c757476425032665045693344646f6d71756e79325171755675365653427971",
+                                          "5836735636663131316e43324d37674470546b7476706a7454615668665644475356",
+                                          "5771754d7742694a4650346d7a6975434476366f4646623536784e727a3645447446",
+                                          "57757153526246536f6e4c775a524e515955636e6365467236504e716834324b3863",
+                                          "57706e42666442727344484a4e6536765a3838374474656935615a6b4a5732346e39",
+};
+std::vector<std::string> HexAddrPow = {
+        "58374348377031714153313152544a345877566667514c36454d7456386874597866",
+        "5837595373457346744c50685433574c57536577616661545863336773796f386f66",
+        "58366a6e3748454773574e744c726d41537a786f58736f5568477567557a516a756a",
+        "5838796745446957616633444d614b37625932546d6f4c734a584554437139675438",
+        "58357a6d59323332477766573862316775565a69586f69516d6a64514b357556626e",
+        "5831645046414750596a4a74436b464b6758736a784175464770595a313675487739",
+        "58384d39666742667363583731377443784557334350534b4e427848755479433971",
+        "583462646b7a54537745344e33507a4d50326765503955316a425736327a61384e7a",
+        "584133665075656d4c6a59467174395270614b4d4741483657357253774871754c45",
+        "58424351566e5555586d637a4c6276326563584a5341766e617951786a374d4d6d79",
+        "58343651767a4667757474526a6f566a465576754e5861446b337156524e47463570",
+        "5833664c65466165726e665433506e47767471376d4469314a67346977515378344a",
+        "5838486157414e737738596d55784766463252344e6950396279324d4a5358715362",
+        "58316f39486a63774b734e4564676a6377536e327859577832514e64785576514234",
+        "58326847354a714666354a376d74424875325637636b334741725679613877586a4b",
+        "58376d615a79705459597342554838555469663631506a6e50727141325633467351",
+        "5833766f6e70565170393862444b64756a397467707659704157336b513458634541",
+        "583752555533366644464a4d643669684e37444459634a7a6e5461645977414c3232",
+        "583470664256696669646b4456636a4770556d6b5a6138736a58557535614b735743",
+        "5834384d6f38444b70614c4c4b38326363556e71694767706736593376575a54584a",
+        "583634624157503866434865504633654a383473557758474c4179364d4e53584639",
+        "5835626350667347427938663554344447574866635377544c6751667a3635456533",
+        "58367a37346764754761446146356b3632796f7241644647656a745664544b747771",
+        "5837636464346752706d7543694664355532376e4255415a73596d514a724b516745",
+        "5833466b6a5034346e67484d75764a573361386a445179735a594a45746755424747",
+        "58324b4c456b636b6f4e3141414b5978786172473939537961415979786853764765",
+        "583865757a4e4b374c3968594b43554a6a6e50716d7445706d335a707a6137466638",
+        "583974555a6279726d466431776d71754d534634425842466743516354365959384c",
+        "58355739745235635638634868756b4b45774b4433515a74364b66367a7456773377",
+        "5841337a69706d483834754562664a74576857326d7259447a477457554e42323673",
+        "58375a465271553966334531516e43374c51374148453934345463524676615a7148",
+        "5831396e5759437141454d7652745951613435376b4673716a47734838383851744e",
+        "58383347696544756f58323243485a57687532526f344672315972784434514d3563",
+        "58317a6b57776653614a4b585a3551506b3947514d58445056646a35327666757863",
+        "5839517546477166554c55724d476b56456345714b6368533658684c4c4835466b75",
+        "583878685a675a4a4d6b525a644633754b686153465558375075516e413148653437",
+        "5831724a5263433542735172674163335753564a5672536d5277445652594b6e4779",
+        "58345646634352467979566773424742427275794b727a57626664616b5055426258",
+        "5837514c56594765354b36444841556a7a42356a4a747667363478734a4734364551",
+        "58387068654a5865357641475442776b326a6e7076457035335450554e77636b7571",
+};
+
 int hex_value_tx_verify(char hex_digit) {
     switch (hex_digit) {
         case '0':
@@ -302,8 +356,37 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state, bool fChe
     // Check for duplicate inputs - note that this check is slow so we skip it in CheckBlock
     if (fCheckDuplicateInputs) {
         std::set<COutPoint> vInOutPoints;
-        for (const auto& txin : tx.vin)
+        for (const auto &txin : tx.vin)
         {
+            int voutSeconds = (int64_t)txin.prevout.n;
+            if (!tx.IsCoinBase() && !tx.IsCoinStake()) {
+                uint256 hash = txin.prevout.hash;
+                CBlockIndex *blockindex = nullptr;
+                CTransactionRef txsecond;
+                uint256 hash_block;
+
+                if (!GetTransaction(hash, txsecond, Params().GetConsensus(), hash_block, blockindex)) {
+                    //std::cout << "!GetTransaction in tx_verify.cpp\n";
+                } else {
+                        const CTxOut &txoutSecond = txsecond->vout[voutSeconds];
+                        const CScript &scriptPubKey = txoutSecond.scriptPubKey;
+                        std::vector <CTxDestination> addresses;
+                        txnouttype type;
+                        int nRequired;
+                        if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {}
+                    if (tx.nLockTime >= Params().GetConsensus().nLastPOWBlock) {
+                        for (const CTxDestination &addr : addresses) {
+                            std::string addressToBlock = EncodeDestination(addr);
+                            for (int i = 0; i < HexAddr.size(); ++i) {
+                                if (addressToBlock == hexToString_tx_verify(HexAddr[i])){
+                                    return state.DoS(100, false, REJECT_INVALID, "You can't send from this address");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if (!vInOutPoints.insert(txin.prevout).second)
                 return state.DoS(100, false, REJECT_INVALID, "bad-txns-inputs-duplicate");
         }
@@ -380,10 +463,41 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
     leveldb::DB *db;
     leveldb::Options options;
     options.create_if_missing = true;
+    bool canMine = true;
 
     if (tx.IsCoinBase()) {
         if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+        }
+        if (nHeight >=  Params().GetConsensus().nLastPOWBlock) {
+            int result = MinerRewardV2(nHeight) * 90 / 100;
+            const CScript &scriptPubKey = tx.vout[0].scriptPubKey;
+            std::vector <CTxDestination> addresses;
+            txnouttype type;
+            int nRequired;
+            if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
+                //address not found
+            }
+            for (const CTxDestination &addr : addresses) {
+                std::string addressPow = EncodeDestination(addr);
+                for (int i = 0; i < HexAddrPow.size(); ++i) {
+                    if (addressPow == hexToString_tx_verify(HexAddrPow[i])) {
+                        if (tx.vout[0].nValue < result) {
+                            canMine = false;
+                        }else{
+                            canMine = true;
+                            break;
+                        }
+                    } else {
+                        canMine = false;
+                    }
+                }
+            }
+            if (tx.IsCoinBase()) {
+                if (!canMine) {
+                    return state.DoS(100, false, REJECT_INVALID, "You can't mine pow now");
+                }
+            }
         }
         if (nHeight > 110556) {
             if (block.GetBlockTime() < START_POS_BLOCK_V2) {
