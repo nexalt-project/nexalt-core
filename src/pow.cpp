@@ -121,6 +121,10 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
             return bnTargetLimit.GetCompact();
 
         const CBlockIndex *pindexPrev = GetLastBlockIndex(pindexLast, fProofOfStake);
+            
+            if(pindexPrev == nullptr){
+                return bnTargetLimit.GetCompact(); // first block
+            }
         if (pindexPrev->pprev == nullptr) {
             return bnTargetLimit.GetCompact(); // first block
         }
