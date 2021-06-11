@@ -1221,12 +1221,14 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
     CScript scriptPubKeyKernel;
     vector<const CWalletTx*> vCoins;
 
+    MilliSleep(3000);
     //prevent staking a time that won't be accepted
     if (GetAdjustedTime() <= chainActive.Tip()->nTime)
         MilliSleep(10000);
 
     const CBlockIndex* pIndex0 = chainActive.Tip();
     const CChainParams& chainparams = Params();
+    boost::this_thread::interruption_point();
     for (std::pair<const CWalletTx*, unsigned int> pcoin : stakeCoins) {
         //make sure that enough time has elapsed between
         CBlockIndex* pindex = LookupBlockIndex(pcoin.first->hashBlock);
@@ -1353,6 +1355,7 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
     nCredit += mainminerReward;
     CAmount nMinFee = 0;
     CScript payeeScript;
+    boost::this_thread::interruption_point();
     if (SelectMasternodePayee(payeeScript)) {
         //nCredit = nCredit - mnReward;
         txNew.vout.resize(2 + 1);
@@ -1434,6 +1437,8 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
         dStakeValueSum += vout.nValue /(double)COIN;
         i += 1;
     }
+    boost::this_thread::interruption_point();
+    MilliSleep(3000);
 
     for (const CWalletTx* pcoin : vCoins) {
         CTxIn& txin = txNew.vin[0];
