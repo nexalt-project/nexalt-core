@@ -1024,7 +1024,7 @@ void PeerLogicValidation::UpdatedBlockTip(const CBlockIndex *pindexNew, const CB
                     pnode->PushBlockHash(hash);
                     std::unique_ptr<CConnman>  g_connmanM = std::unique_ptr<CConnman>(new CConnman(GetRand(std::numeric_limits<uint64_t>::max()), GetRand(std::numeric_limits<uint64_t>::max())));
                     const CNetMsgMaker msgMaker(PROTOCOL_VERSION);
-                    g_connmanM->PushMessage(pnode, msgMaker.Make("dseg_block",CTxIn()));
+                    //g_connmanM->PushMessage(pnode, msgMaker.Make("dseg_block",CTxIn()));
                 }
             }
         });
@@ -2724,9 +2724,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
             pfrom->fDisconnect = true;
             return false;
         }
-        if (!IsInitialBlockDownload()){
+        /*if (!IsInitialBlockDownload()){
             connman->PushMessage(pfrom, msgMaker.Make("dseg_block",CTxIn()));
-        }
+        }*/
 
         bool received_new_header = false;
 

@@ -509,7 +509,7 @@ void ProcessMasternode(CNode* pfrom, CConnman* connman, const std::string& strCo
         }
     }
 
-    else if (strCommand == "dseg_block") { //Get masternode list or specific entry
+    /*else if (strCommand == "dseg_block") { //Get masternode list or specific entry
         isMasternodeCommand = true;
 
         CTxIn vin;
@@ -558,7 +558,7 @@ void ProcessMasternode(CNode* pfrom, CConnman* connman, const std::string& strCo
             }
             i++;
         }
-    }
+    }*/
 
     else if (strCommand == "mnget") { //Masternode Payments Request Sync
         isMasternodeCommand = true;
