@@ -1606,7 +1606,7 @@ void Stake::StakingThread(CWallet* wallet, CConnman* connman) {
 
             if (nCanStake) {
                 if (GenBlockStake(wallet, extra)){
-                    MilliSleep(600000);
+                    MilliSleep(1500);
                 }
             } else {
                 MilliSleep(1000);
