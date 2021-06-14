@@ -1221,7 +1221,6 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
     CScript scriptPubKeyKernel;
     vector<const CWalletTx*> vCoins;
 
-    MilliSleep(3000);
     //prevent staking a time that won't be accepted
     if (GetAdjustedTime() <= chainActive.Tip()->nTime)
         MilliSleep(10000);
@@ -1438,7 +1437,6 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
         i += 1;
     }
     boost::this_thread::interruption_point();
-    MilliSleep(3000);
 
     for (const CWalletTx* pcoin : vCoins) {
         CTxIn& txin = txNew.vin[0];
