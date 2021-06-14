@@ -2291,7 +2291,6 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
         const CTransaction &tx = *(block.vtx[i]);
         uint256 hash = tx.GetHash();
         bool is_coinbase = tx.IsCoinBase();
-        bool is_coinstake = tx.IsCoinStake();
 
         // Check that all outputs are available and match the outputs in the block itself
         // exactly.
@@ -2306,12 +2305,8 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
             }
         }
 
-        int tn = 1;
-        if(is_coinstake){
-            tn = 0;
-        }
         // restore inputs
-        if (i >= tn) { // not coinbases
+        if (i > 0) { // not coinbases
             CTxUndo &txundo = blockUndo.vtxundo[i-1];
             if (txundo.vprevout.size() != tx.vin.size()) {
                 error("DisconnectBlock(): transaction and undo data inconsistent");
