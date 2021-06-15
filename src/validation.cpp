@@ -2299,7 +2299,7 @@ DisconnectResult CChainState::DisconnectBlock(const CBlock& block, const CBlockI
                 COutPoint out(hash, o);
                 Coin coin;
                 bool is_spent = view.SpendCoin(out, &coin);
-                if (!is_spent || tx.vout[o] != coin.out || pindex->nHeight != coin.nHeight || is_coinbase != coin.fCoinBase ) {
+                if (!is_spent || tx.vout[o].ToString() != coin.out.ToString() || pindex->nHeight != coin.nHeight || is_coinbase != coin.fCoinBase ) {
                     fClean = false; // transaction output mismatch
                 }
             }
