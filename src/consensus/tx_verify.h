@@ -25,7 +25,7 @@ using namespace std;
 /** Context-independent validity checks */
 bool CheckTransaction(const CTransaction& tx, CValidationState& state, bool fCheckDuplicateInputs=true);
 
-bool CheckTransactionToGetData(const CTransaction& tx, CValidationState& state, int height , double mlcDistribution,const CBlock& block , bool fCheckDuplicateInputs=true);
+bool CheckTransactionToGetData(const CTransaction& tx, CValidationState& state, int height , double mlcDistribution,const CBlock& block , bool fCheckDuplicateInputs=true ,bool boostDownload = false);
 
 string ScriptToAsmStrSecond(const CScript& script, const bool fAttemptSighashDecode = false);
 

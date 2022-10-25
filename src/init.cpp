@@ -523,6 +523,7 @@ void SetupServerArgs()
     gArgs.AddArg("-shrinkdebugfile", "Shrink debug.log file on client startup (default: 1 when no -debug)", false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-uacomment=<cmt>", "Append comment to the user agent string", false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-staking", strprintf("Stake your coins to support network and gain reward(default: %s)", DEFAULT_STAKE), true , OptionsCategory::OPTIONS);
+    gArgs.AddArg("-boostspeed", strprintf("Boost your downloading speed by overcoming some validation default value :(default: %s).", BOOST_DOWNLOAD), true , OptionsCategory::OPTIONS);
 
     gArgs.AddArg("-masternode", strprintf("Enable the client to act as a masternode (0-1, default: %u)", 0), true, OptionsCategory::OPTIONS);
     gArgs.AddArg("-mnconf=<file>", strprintf("Specify masternode configuration file (default: %s)", "masternode.conf"), false, OptionsCategory::OPTIONS);

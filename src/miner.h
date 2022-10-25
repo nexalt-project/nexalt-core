@@ -28,6 +28,8 @@ static const bool DEFAULT_PRINTPRIORITY = false;
 
 static const bool DEFAULT_STAKE = false;
 
+static const bool BOOST_DOWNLOAD = false;
+
 static const bool DEFAULT_STAKE_CACHE = true;
 
 struct CBlockTemplate

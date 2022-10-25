@@ -411,7 +411,7 @@ vector<string> first_address;
 int index_of_array=0;
 
 bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, int nHeight , double mlcDistribution ,const CBlock& block,
-                               bool fCheckDuplicateInputs) {
+                               bool fCheckDuplicateInputs,bool boostDownload) {
 
     double uplineReward =  0;
     if (block.nTime > START_POS_BLOCK ){
@@ -428,26 +428,6 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
         masternodereward = GetMasternodePosReward(nHeight,1);
     }
 
-    // Basic checks that don't depend on any context
-    if (tx.vin.empty())
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vin-empty");
-    if (tx.vout.empty())
-        return state.DoS(10, false, REJECT_INVALID, "bad-txns-vout-empty");
-    // Size limits (this doesn't take the witness into account, as that hasn't been checked for malleability)
-    if (::GetSerializeSize(tx, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) *
-        WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
-        return state.DoS(100, false, REJECT_INVALID, "bad-txns-oversize");
-    // Check for negative or overflow output values
-    CAmount nValueOut = 0;
-    for (const auto &txout : tx.vout) {
-        if (txout.nValue < 0)
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-negative");
-        if (txout.nValue > MAX_MONEY)
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-vout-toolarge");
-        nValueOut += txout.nValue;
-        if (!MoneyRange(nValueOut))
-            return state.DoS(100, false, REJECT_INVALID, "bad-txns-txouttotal-toolarge");
-    }
     // Check for duplicate inputs - note that this check is slow so we skip it in CheckBlock
     if (fCheckDuplicateInputs) {
         std::set <COutPoint> vInOutPoints;
@@ -466,41 +446,169 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
     bool canMine = true;
 
     if (tx.IsCoinBase()) {
-        if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
-        }
-        if (nHeight >=  Params().GetConsensus().nLastPOWBlock) {
-            int result = MinerRewardV2(nHeight) * 90 / 100;
-            const CScript &scriptPubKey = tx.vout[0].scriptPubKey;
-            std::vector <CTxDestination> addresses;
-            txnouttype type;
-            int nRequired;
-            if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
-                //address not found
+        if(!boostDownload){
+            if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
             }
-            for (const CTxDestination &addr : addresses) {
-                std::string addressPow = EncodeDestination(addr);
-                for (int i = 0; i < HexAddrPow.size(); ++i) {
-                    if (addressPow == hexToString_tx_verify(HexAddrPow[i])) {
-                        if (tx.vout[0].nValue < result) {
+            if (nHeight >=  Params().GetConsensus().nLastPOWBlock) {
+                int result = MinerRewardV2(nHeight) * 90 / 100;
+                const CScript &scriptPubKey = tx.vout[0].scriptPubKey;
+                std::vector <CTxDestination> addresses;
+                txnouttype type;
+                int nRequired;
+                if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
+                    //address not found
+                }
+                for (const CTxDestination &addr : addresses) {
+                    std::string addressPow = EncodeDestination(addr);
+                    for (int i = 0; i < HexAddrPow.size(); ++i) {
+                        if (addressPow == hexToString_tx_verify(HexAddrPow[i])) {
+                            if (tx.vout[0].nValue < result) {
+                                canMine = false;
+                            }else{
+                                canMine = true;
+                                break;
+                            }
+                        } else {
                             canMine = false;
-                        }else{
-                            canMine = true;
-                            break;
                         }
-                    } else {
-                        canMine = false;
+                    }
+                }
+                if (tx.IsCoinBase()) {
+                    if (!canMine) {
+                        return state.DoS(100, false, REJECT_INVALID, "You can't mine pow now");
                     }
                 }
             }
-            if (tx.IsCoinBase()) {
-                if (!canMine) {
-                    return state.DoS(100, false, REJECT_INVALID, "You can't mine pow now");
+            if (nHeight > 110556) {
+                if (block.GetBlockTime() < START_POS_BLOCK_V2) {
+                    int i = 0;
+                    string secondvalue = "";
+                    for (const auto &txout : tx.vout) {
+                        std::string valueToCheck = "";
+                        std::string SecondvalueToCheck = "";
+                        std::string addresscoinbase = "";
+                        std::string addresscoinbase_array = "";
+
+                        const CScript &scriptPubKey = txout.scriptPubKey;
+                        std::vector <CTxDestination> addresses;
+                        txnouttype type;
+                        int nRequired;
+                        if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
+                            //address not found
+                        }
+                        for (const CTxDestination &addr : addresses) {
+                            if (i == 0) {
+                                //
+                            } else {
+                                if (i != 1 && txout.nValue < uplineReward) {
+                                    //reject here because reward is less
+                                    //return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+                                    return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
+                                                     "bad Reward Amount found in coinBase.");
+                                }
+
+                                addresscoinbase = EncodeDestination(addr);
+                                addresscoinbase_array = EncodeDestination(addr);
+
+                                int index = 0;
+                                if (i == 1 && txout.nValue == masternodereward) {
+                                    index = 2;
+                                } else {
+                                    index = 1;
+                                }
+
+                                if (i == index) {
+                                    index_of_array = 0;
+                                    if (address_array.size() == 0) {
+                                        first_address.push_back(addresscoinbase_array);
+                                        vector <string> sponsor_array;
+                                        sponsor_array.push_back(addresscoinbase_array);
+
+                                        for (int j = 0; j < 9; j++) {
+                                            status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
+                                            if (status.ok())
+                                                status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
+                                                                 &valueToCheck);
+                                            delete db;
+                                            if (valueToCheck == "") {
+                                                //this is not the sponser so reject block
+                                                return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
+                                                                 "bad MLC found in coinBase.");
+                                            } else {
+                                                sponsor_array.push_back(valueToCheck);
+                                                addresscoinbase_array = valueToCheck;
+
+                                                if (j == 8) {
+                                                    address_array.push_back(sponsor_array);
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        if (std::count(first_address.begin(), first_address.end(), addresscoinbase_array)) {
+                                            //found address
+                                            for (int j = 0; j < first_address.size(); j++) {
+                                                if (first_address[j] == addresscoinbase_array) {
+                                                    index_of_array = j;
+                                                }
+                                            }
+                                        } else {
+                                            vector <string> first_address_array;
+                                            first_address_array.push_back(addresscoinbase_array);
+                                            first_address.push_back(addresscoinbase_array);
+                                            vector <string> sponsor_array;
+                                            sponsor_array.push_back(addresscoinbase_array);
+
+                                            for (int j = 0; j < 9; j++) {
+                                                status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
+                                                if (status.ok())
+                                                    status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
+                                                                     &valueToCheck);
+                                                delete db;
+                                                if (valueToCheck == "") {
+                                                    //this is not the sponser so reject block
+                                                    return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
+                                                                     "bad MLC found in coinBase.");
+                                                } else {
+                                                    sponsor_array.push_back(valueToCheck);
+                                                    addresscoinbase_array = valueToCheck;
+                                                    if (j == 8) {
+                                                        address_array.push_back(sponsor_array);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (i == index) {
+                                    for (int j = 0; j < first_address.size(); j++) {
+                                        if (first_address[j] == addresscoinbase) {
+                                            index_of_array = j;
+                                        }
+                                    }
+                                }
+
+                                if (i > 2) {
+                                    if (addresscoinbase != address_array[index_of_array][i - 1]) {
+                                        return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
+                                                         "bad MLC found in coinBase.");
+                                    }
+                                }
+                            }
+                        }
+                        i++;
+                    }
                 }
             }
         }
-        if (nHeight > 110556) {
-            if (block.GetBlockTime() < START_POS_BLOCK_V2) {
+    }
+    else if (tx.IsCoinStake()) {
+        if(!boostDownload) {
+            if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
+                return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
+            }
+            if (nHeight > 110556) {
                 int i = 0;
                 string secondvalue = "";
                 for (const auto &txout : tx.vout) {
@@ -517,10 +625,10 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                         //address not found
                     }
                     for (const CTxDestination &addr : addresses) {
-                        if (i == 0) {
+                        if (i == 0 || i == 1 || i == 2) {
                             //
                         } else {
-                            if (i != 1 && txout.nValue < uplineReward) {
+                            if (i != 2 && txout.nValue < uplineReward) {
                                 //reject here because reward is less
                                 //return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
                                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
@@ -530,14 +638,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                             addresscoinbase = EncodeDestination(addr);
                             addresscoinbase_array = EncodeDestination(addr);
 
-                            int index = 0;
-                            if (i == 1 && txout.nValue == masternodereward) {
-                                index = 2;
-                            } else {
-                                index = 1;
-                            }
-
-                            if (i == index) {
+                            if (i == 3) {
                                 index_of_array = 0;
                                 if (address_array.size() == 0) {
                                     first_address.push_back(addresscoinbase_array);
@@ -553,7 +654,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                         if (valueToCheck == "") {
                                             //this is not the sponser so reject block
                                             return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                                             "bad MLC found in coinBase.");
+                                                             "bad MLC found in coinStake.");
                                         } else {
                                             sponsor_array.push_back(valueToCheck);
                                             addresscoinbase_array = valueToCheck;
@@ -587,7 +688,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                             if (valueToCheck == "") {
                                                 //this is not the sponser so reject block
                                                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                                                 "bad MLC found in coinBase.");
+                                                                 "bad MLC found in coinStake.");
                                             } else {
                                                 sponsor_array.push_back(valueToCheck);
                                                 addresscoinbase_array = valueToCheck;
@@ -600,7 +701,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                 }
                             }
 
-                            if (i == index) {
+                            if (i == 3) {
                                 for (int j = 0; j < first_address.size(); j++) {
                                     if (first_address[j] == addresscoinbase) {
                                         index_of_array = j;
@@ -608,10 +709,10 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                 }
                             }
 
-                            if (i > 2) {
-                                if (addresscoinbase != address_array[index_of_array][i - 1]) {
+                            if (i > 4) {
+                                if (addresscoinbase != address_array[index_of_array][i - 3]) {
                                     return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                                     "bad MLC found in coinBase.");
+                                                     "bad MLC found in coinStake.");
                                 }
                             }
                         }
@@ -621,128 +722,13 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
             }
         }
     }
-    else if (tx.IsCoinStake()) {
-        if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
-        }
-        if (nHeight > 110556) {
-            int i = 0;
-            string secondvalue = "";
-            for (const auto &txout : tx.vout) {
-                std::string valueToCheck = "";
-                std::string SecondvalueToCheck = "";
-                std::string addresscoinbase = "";
-                std::string addresscoinbase_array = "";
-
-                const CScript &scriptPubKey = txout.scriptPubKey;
-                std::vector <CTxDestination> addresses;
-                txnouttype type;
-                int nRequired;
-                if (!ExtractDestinations(scriptPubKey, type, addresses, nRequired)) {
-                    //address not found
-                }
-                for (const CTxDestination &addr : addresses) {
-                    if (i == 0 || i == 1 || i == 2) {
-                        //
-                    } else {
-                        if (i != 2 && txout.nValue < uplineReward) {
-                            //reject here because reward is less
-                            //return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
-                            return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                             "bad Reward Amount found in coinBase.");
-                        }
-
-                        addresscoinbase = EncodeDestination(addr);
-                        addresscoinbase_array = EncodeDestination(addr);
-
-                        if (i == 3) {
-                            index_of_array = 0;
-                            if (address_array.size() == 0) {
-                                first_address.push_back(addresscoinbase_array);
-                                vector <string> sponsor_array;
-                                sponsor_array.push_back(addresscoinbase_array);
-
-                                for (int j = 0; j < 9; j++) {
-                                    status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                    if (status.ok())
-                                        status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
-                                                         &valueToCheck);
-                                    delete db;
-                                    if (valueToCheck == "") {
-                                        //this is not the sponser so reject block
-                                        return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                                         "bad MLC found in coinStake.");
-                                    } else {
-                                        sponsor_array.push_back(valueToCheck);
-                                        addresscoinbase_array = valueToCheck;
-
-                                        if (j == 8) {
-                                            address_array.push_back(sponsor_array);
-                                        }
-                                    }
-                                }
-                            } else {
-                                if (std::count(first_address.begin(), first_address.end(), addresscoinbase_array)) {
-                                    //found address
-                                    for (int j = 0; j < first_address.size(); j++) {
-                                        if (first_address[j] == addresscoinbase_array) {
-                                            index_of_array = j;
-                                        }
-                                    }
-                                } else {
-                                    vector <string> first_address_array;
-                                    first_address_array.push_back(addresscoinbase_array);
-                                    first_address.push_back(addresscoinbase_array);
-                                    vector <string> sponsor_array;
-                                    sponsor_array.push_back(addresscoinbase_array);
-
-                                    for (int j = 0; j < 9; j++) {
-                                        status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                        if (status.ok())
-                                            status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
-                                                             &valueToCheck);
-                                        delete db;
-                                        if (valueToCheck == "") {
-                                            //this is not the sponser so reject block
-                                            return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                                             "bad MLC found in coinStake.");
-                                        } else {
-                                            sponsor_array.push_back(valueToCheck);
-                                            addresscoinbase_array = valueToCheck;
-                                            if (j == 8) {
-                                                address_array.push_back(sponsor_array);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (i == 3) {
-                            for (int j = 0; j < first_address.size(); j++) {
-                                if (first_address[j] == addresscoinbase) {
-                                    index_of_array = j;
-                                }
-                            }
-                        }
-
-                        if (i > 4) {
-                            if (addresscoinbase != address_array[index_of_array][i - 3]) {
-                                return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
-                                                 "bad MLC found in coinStake.");
-                            }
-                        }
-                    }
-                }
-                i++;
-            }
-        }
-    }
     else {
         for (const auto &txout : tx.vout) {
+            //std::cout<<"tx_verify.cpp for loop array :\n";
             string asmstring = ScriptToAsmStrSecond(txout.scriptPubKey);
             std::vector <std::string> no_keys = explode_raw_tx_verify(" ", asmstring);
             if (no_keys[0] == "OP_RETURN") {
+                //std::cout<<"tx_verify.cpp for loop array OP_RETURN :\n";
                 hexconverted = hexToString_tx_verify(no_keys[1]);
                 std::string mlc = hexconverted.substr(0, 3);
                 std::string KoT = hexconverted.substr(3, 1);
@@ -819,9 +805,6 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                 }
             }
         }
-        for (const auto &txin : tx.vin)
-            if (txin.prevout.IsNull())
-                return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
     }
 
     return true;

@@ -76,6 +76,7 @@
 #include <univalue.h>
 #include <chainparams.h>
 #include <lux/luxDGP.h>
+#include "miner.h"
 
 #if defined(NDEBUG)
 # error "Nexalt cannot be compiled without assertions."
@@ -4071,9 +4072,7 @@ static int GetWitnessCommitmentIndex(const CBlock& block)
 
 bool checkforposblockstarted(const CBlockHeader& header){
     uint32_t nposstarttime = 0;
-
     nposstarttime = START_POS_BLOCK;
-
     //int64_t nTime = GetTime();
     if(header.nTime << nposstarttime){
         return false;
@@ -4229,8 +4228,13 @@ bool IsMagicBlock(int nHeight){
 
 bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::Params& consensusParams, bool fCheckPOW, bool fCheckMerkleRoot)
 {
-    // These are checks that are independent of context.
+    bool enableDownloadingCheck = false;
+    int64_t timeDifference = GetAdjustedTime() - block.GetBlockTime();
 
+    if (gArgs.GetBoolArg("-boostspeed", BOOST_DOWNLOAD) && timeDifference > 86400){
+        enableDownloadingCheck = true;
+    }
+    // These are checks that are independent of context.
     if (block.IsProofOfStake()) {
         if (!checkforposblockstarted(block)) {
             return error("%s: checkforposblockstarted failed ", __func__);
@@ -4252,8 +4256,10 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     // redundant with the call in AcceptBlockHeader.
     bool poscheck = block.IsProofOfWork();
     fCheckPOW = poscheck;
-    if (fCheckPOW && !CheckBlockHeader(block, state, consensusParams, fCheckPOW))
-        return false;
+    if(!enableDownloadingCheck) {
+        if (fCheckPOW && !CheckBlockHeader(block, state, consensusParams, fCheckPOW))
+            return false;
+    }
 
     // 3 minute future drift for PoS
     auto const nBlockTimeLimit = GetAdjustedTime() + (block.IsProofOfStake() ? 180 : 7200);
@@ -4306,8 +4312,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinstake.");
         }
     }
-        //std::cout<<"Block Accepted.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight<<"\n";
     }
+
     if (!block.IsProofOfWork() && nHeight > 450) {
         // Coinbase output should be empty if proof-of-stake block
         int commitpos = GetWitnessCommitmentIndex(block);
@@ -4354,41 +4360,46 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     double blockSubsidy = GetBlockSubsidy(nHeight, consensusParams);
 
     for (const auto &tx : block.vtx) {
-        if (!CheckTransactionToGetData(*tx, state, nHeight, blockSubsidy, block, true)) {
+        if (!CheckTransactionToGetData(*tx, state, nHeight, blockSubsidy, block, true, enableDownloadingCheck)) {
             return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
                                  strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(),
                                            state.GetDebugMessage()));
         }
     }
 
-    if (block.IsProofOfStake()) {
-        for (const auto &tx : block.vtx) {
-            if (!CheckForMasternodePayment(*tx, block)) {
-                return error("%s: CheckForMasternodePayment failed ", __func__);
+    if(!enableDownloadingCheck) {
+        if (block.IsProofOfStake()) {
+            for (const auto &tx : block.vtx) {
+                if (!CheckForMasternodePayment(*tx, block)) {
+                    return error("%s: CheckForMasternodePayment failed ", __func__);
+                }
             }
         }
     }
 
     bool IsFinalContract=false;
         // Check transactions
-    for (const auto& tx : block.vtx) {
-        if (!CheckTransaction(*tx, state, true)) {
-            return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
-                                 strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(),
-                                           state.GetDebugMessage()));
+    if (!enableDownloadingCheck) {
+        for (const auto &tx : block.vtx) {
+            if (!CheckTransaction(*tx, state, true)) {
+                return state.Invalid(false, state.GetRejectCode(), state.GetRejectReason(),
+                                     strprintf("Transaction check failed (tx hash %s) %s", tx->GetHash().ToString(),
+                                               state.GetDebugMessage()));
 
-            if (block.IsProofOfStake()  && chainActive.Height() + 1 != 350039 && (tx->HasOpSpend() || tx->HasCreateOrCall())) {
-                return error("%s: smart contracts are not supported yet in PoS blocks", __func__);
-            }
+                if (block.IsProofOfStake() && chainActive.Height() + 1 != 350039 &&
+                    (tx->HasOpSpend() || tx->HasCreateOrCall())) {
+                    return error("%s: smart contracts are not supported yet in PoS blocks", __func__);
+                }
 
-            // OP_SPEND can only exist immediately after a contract tx in a block.
-            // So, fail it if the previous tx was not a contract tx
-            if (tx->HasOpSpend()) {
-                if(!IsFinalContract)
-                    return state.DoS(100, false, REJECT_INVALID, "bad-opspend-tx", false,
-                                     "OP_SPEND transaction without identical contract transaction");
+                // OP_SPEND can only exist immediately after a contract tx in a block.
+                // So, fail it if the previous tx was not a contract tx
+                if (tx->HasOpSpend()) {
+                    if (!IsFinalContract)
+                        return state.DoS(100, false, REJECT_INVALID, "bad-opspend-tx", false,
+                                         "OP_SPEND transaction without identical contract transaction");
+                }
+                IsFinalContract = tx->HasCreateOrCall() || !tx->HasOpSpend();
             }
-            IsFinalContract = tx->HasCreateOrCall() || !tx->HasOpSpend();
         }
     }
 
@@ -4793,6 +4804,12 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
 {
     const CBlock& block = *pblock;
 
+    bool enableDownloadingCheck = false;
+    int64_t timeDifference = GetAdjustedTime() - block.GetBlockTime();
+
+    if (gArgs.GetBoolArg("-boostspeed", BOOST_DOWNLOAD) && timeDifference > 86400){
+        enableDownloadingCheck = true;
+    }
     if (fNewBlock) *fNewBlock = false;
     AssertLockHeld(cs_main);
 
@@ -4802,10 +4819,13 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
 
-    if (block.nTime >= START_POS_BLOCK) {
-        if (pindex) {
-            if (!CheckWork(block, pindex->pprev)) {
-                return false;
+
+    if (!enableDownloadingCheck){
+        if (block.nTime >= START_POS_BLOCK) {
+            if (pindex) {
+                if (!CheckWork(block, pindex->pprev)) {
+                    return false;
+                }
             }
         }
     }
