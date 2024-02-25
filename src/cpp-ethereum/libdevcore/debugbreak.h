@@ -42,9 +42,9 @@ extern "C" {
 #endif
 
 enum {
-	/* gcc optimizers consider code after __builtin_trap() dead.
-	 * Making __builtin_trap() unsuitable for breaking into the debugger */
-	DEBUG_BREAK_PREFER_BUILTIN_TRAP_TO_SIGTRAP = 0,
+    /* gcc optimizers consider code after __builtin_trap() dead.
+     * Making __builtin_trap() unsuitable for breaking into the debugger */
+    DEBUG_BREAK_PREFER_BUILTIN_TRAP_TO_SIGTRAP = 0,
 };
 
 #if defined(__i386__) || defined(__x86_64__)
@@ -103,20 +103,20 @@ static void __inline__ debug_break(void)
 #ifdef LUX_BUILD
     __builtin_trap();
 #else
-	if (HAVE_TRAP_INSTRUCTION) {
+    if (HAVE_TRAP_INSTRUCTION) {
 #if defined(ETH_EMSCRIPTEN)
-		asm("debugger");
+        asm("debugger");
 #else
-		trap_instruction();
+        //trap_instruction();
 #endif
-	} else if (DEBUG_BREAK_PREFER_BUILTIN_TRAP_TO_SIGTRAP) {
-		 /* raises SIGILL on Linux x86{,-64}, to continue in gdb:
-		  * (gdb) handle SIGILL stop nopass
-		  * */
-		__builtin_trap();
-	} else {
-		raise(SIGTRAP);
-	}
+    } else if (DEBUG_BREAK_PREFER_BUILTIN_TRAP_TO_SIGTRAP) {
+        /* raises SIGILL on Linux x86{,-64}, to continue in gdb:
+         * (gdb) handle SIGILL stop nopass
+         * */
+        __builtin_trap();
+    } else {
+        raise(SIGTRAP);
+    }
 #endif
 }
 

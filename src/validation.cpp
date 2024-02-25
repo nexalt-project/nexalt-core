@@ -2466,6 +2466,24 @@ static unsigned int GetBlockScriptFlags(const CBlockIndex* pindex, const Consens
     return flags;
 }
 
+double halvingSubtraction(int nHeight)
+{
+
+    const CChainParams& chainParams = Params();
+
+    int halvings = nHeight / chainParams.GetConsensus().nSubsidyHalvingInterval;
+    // Checking if halvings is less than 0 to ensure the input is valid
+    if (halvings < 0) {
+        std::cout << "Invalid input. 'halvings' should be a non-negative integer." << std::endl;
+        return 0; // Return an invalid value to indicate error
+    }
+
+    double subtracted_fraction= 0.5 / pow(2, halvings); // Calculate and return the value based on the number of halvings
+
+    //LogPrintf(" Subtracted fraction %d\n",  subtracted_fraction);
+
+    return subtracted_fraction;
+}
 
 
 static int64_t nTimeCheck = 0;
@@ -2959,8 +2977,10 @@ bool CChainState::ConnectBlock(const CBlock& block, CValidationState& state, CBl
     if(isMagic){
         blockReward = MagicBlockReward(pindex->nHeight, GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus()));
     }else{
-        blockReward = GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus()) - (0.5 * COIN);
-    }
+        double halving_subtraction = halvingSubtraction(pindex->nHeight);
+        blockReward = GetBlockSubsidy(pindex->nHeight, chainparams.GetConsensus()) - (halving_subtraction * COIN);
+
+     }
     uint32_t nposstarttime = 0;
     nposstarttime = START_POS_BLOCK;
     if (block.nTime < nposstarttime){
@@ -4312,8 +4332,8 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinstake.");
         }
     }
+        //std::cout<<"Block Accepted.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight<<"\n";
     }
-
     if (!block.IsProofOfWork() && nHeight > 450) {
         // Coinbase output should be empty if proof-of-stake block
         int commitpos = GetWitnessCommitmentIndex(block);
@@ -4818,7 +4838,6 @@ bool CChainState::AcceptBlock(const std::shared_ptr<const CBlock>& pblock, CVali
 
     if (!AcceptBlockHeader(block, state, chainparams, &pindex))
         return false;
-
 
     if (!enableDownloadingCheck){
         if (block.nTime >= START_POS_BLOCK) {
