@@ -45,6 +45,7 @@
 #include <functional>
 #include <string>
 #include <chrono>
+#include <boost/functional/hash/hash.hpp>
 
 #ifndef __APPLE__
 #pragma warning(push)

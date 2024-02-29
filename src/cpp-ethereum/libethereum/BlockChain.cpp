@@ -20,6 +20,8 @@
  */
 
 #include "BlockChain.h"
+#define BOOST_TIMER_ENABLE_DEPRECATED
+#include <boost/timer.hpp>
 
 #if ETH_PROFILING_GPERF
 #include <gperftools/profiler.h>

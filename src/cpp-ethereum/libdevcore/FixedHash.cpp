@@ -26,7 +26,7 @@
 using namespace std;
 using namespace dev;
 
-boost::random_device dev::s_fixedHashEngine;
+random_device dev::s_fixedHashEngine;
 
 h128 dev::fromUUID(std::string const& _uuid)
 {

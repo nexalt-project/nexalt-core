@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <boost/test/unit_test.hpp>
+#include <boost/filesystem.hpp>
 
 #include <fs.h>
 #include <test/test_bitcoin.h>
@@ -18,7 +19,7 @@ BOOST_AUTO_TEST_CASE(getwalletenv_file)
     std::string test_name = "test_name.dat";
     fs::path datadir = SetDataDir("tempdir");
     fs::path file_path = datadir / test_name;
-    std::ofstream f(file_path.BOOST_FILESYSTEM_C_STR);
+    std::ofstream f(file_path.c_str());
     f.close();
 
     std::string filename;
