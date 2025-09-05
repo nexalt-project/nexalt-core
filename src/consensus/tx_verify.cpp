@@ -30,6 +30,7 @@
 #include <../wallet/walletdb.h>
 #include <../wallet/walletutil.h>
 #include <future>
+#include <mlcdb.h>
 #include <stdint.h>
 #include <core_io.h>
 #include <key_io.h>
@@ -446,6 +447,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
     bool canMine = true;
 
     if (tx.IsCoinBase()) {
+        // Always ingest OP_RETURN MLC entries later regardless of mode; enforcement is gated elsewhere
         if(!boostDownload){
             if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
@@ -526,11 +528,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                         sponsor_array.push_back(addresscoinbase_array);
 
                                         for (int j = 0; j < 9; j++) {
-                                            status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                            if (status.ok())
-                                                status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
-                                                                 &valueToCheck);
-                                            delete db;
+                                            bool ok = MlcDb::Instance().GetMlc(addresscoinbase_array, valueToCheck);
                                             if (valueToCheck == "") {
                                                 //this is not the sponser so reject block
                                                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
@@ -560,11 +558,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                             sponsor_array.push_back(addresscoinbase_array);
 
                                             for (int j = 0; j < 9; j++) {
-                                                status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                                if (status.ok())
-                                                    status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
-                                                                     &valueToCheck);
-                                                delete db;
+                                                bool ok = MlcDb::Instance().GetMlc(addresscoinbase_array, valueToCheck);
                                                 if (valueToCheck == "") {
                                                     //this is not the sponser so reject block
                                                     return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
@@ -604,6 +598,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
         }
     }
     else if (tx.IsCoinStake()) {
+        // Enforcement path is gated by fast path higher-level flag; ingestion remains unconditional below
         if(!boostDownload) {
             if (/*tx.vin[0].scriptSig.size() < 2 || */tx.vin[0].scriptSig.size() > 150) {
                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-length");
@@ -646,11 +641,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                     sponsor_array.push_back(addresscoinbase_array);
 
                                     for (int j = 0; j < 9; j++) {
-                                        status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                        if (status.ok())
-                                            status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
-                                                             &valueToCheck);
-                                        delete db;
+                                        MlcDb::Instance().GetMlc(addresscoinbase_array, valueToCheck);
                                         if (valueToCheck == "") {
                                             //this is not the sponser so reject block
                                             return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
@@ -680,11 +671,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                         sponsor_array.push_back(addresscoinbase_array);
 
                                         for (int j = 0; j < 9; j++) {
-                                            status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                            if (status.ok())
-                                                status = db->Get(leveldb::ReadOptions(), addresscoinbase_array,
-                                                                 &valueToCheck);
-                                            delete db;
+                                            MlcDb::Instance().GetMlc(addresscoinbase_array, valueToCheck);
                                             if (valueToCheck == "") {
                                                 //this is not the sponser so reject block
                                                 return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false,
@@ -736,6 +723,7 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                     if (KoT == "K") {
                         std::string key = hexconverted.substr(4, 34);
                         std::string value = hexconverted.substr(38, 34);
+                        // Ingest MLC K/V unconditionally so DB stays complete regardless of fast path checks
 
                         for (const std::shared_ptr <CWallet> &pwallet : GetWallets()) {
                             std::string wallet_name = pwallet->GetName();
@@ -746,59 +734,30 @@ bool CheckTransactionToGetData(const CTransaction &tx, CValidationState &state, 
                                 if (bool(mine & ISMINE_SPENDABLE) == 1) {
                                     if (wallet_name == "") {
                                         //default wallet
-                                        leveldb::Status status_my;
-                                        leveldb::DB *db_my;
-                                        leveldb::Options options_my;
-                                        options_my.create_if_missing = true;
                                         std::string StringKey = "StringKey";
                                         std::string StringKeyToShow = "StringKeyToShow";
-                                        status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-                                        if (status_my.ok())
-                                            status_my = db_my->Put(leveldb::WriteOptions(), StringKey, key);
-                                        if (status_my.ok())
-                                            status_my = db_my->Put(leveldb::WriteOptions(), StringKeyToShow,
-                                                                   tx.GetHash().ToString());
-                                        delete db_my;
+                                        MlcDb::Instance().PutMyKey(StringKey, key);
+                                        MlcDb::Instance().PutMyKey(StringKeyToShow, tx.GetHash().ToString());
                                     } else {
-                                        leveldb::Status status_my;
-                                        leveldb::DB *db_my;
-                                        leveldb::Options options_my;
-                                        options_my.create_if_missing = true;
                                         std::string StringKey = wallet_name;
                                         std::string StringKeyToShow = wallet_name + "_show";
-                                        status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-                                        if (status_my.ok())
-                                            status_my = db_my->Put(leveldb::WriteOptions(), StringKey, key);
-                                        if (status_my.ok())
-                                            status_my = db_my->Put(leveldb::WriteOptions(), StringKeyToShow,
-                                                                   tx.GetHash().ToString());
-                                        delete db_my;
+                                        MlcDb::Instance().PutMyKey(StringKey, key);
+                                        MlcDb::Instance().PutMyKey(StringKeyToShow, tx.GetHash().ToString());
                                     }
                                 }
                             }
                         }
                         std::string valueToCheck = "";
-                        status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                        if (status.ok()) status = db->Get(leveldb::ReadOptions(), key, &valueToCheck);
-                        delete db;
+                        MlcDb::Instance().GetMlc(key, valueToCheck);
                         if (valueToCheck == "") {
                             if (nHeight > 110556) {
                                 std::string MlcKeyCheck = "";
-                                status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                if (status.ok()) status = db->Get(leveldb::ReadOptions(), value, &MlcKeyCheck);
-                                delete db;
-                                if (MlcKeyCheck == "") {
-                                    //std::cout << "Not Saving it because this is wrong chain key= " << key << "\n";
-                                    //std::cout << "Not Saving it because this is wrong chain value= " << value << "\n";
-                                } else {
-                                    status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                    if (status.ok()) status = db->Put(leveldb::WriteOptions(), key, value);
-                                    delete db;
+                                MlcDb::Instance().GetMlc(value, MlcKeyCheck);
+                                if (MlcKeyCheck != "") {
+                                    MlcDb::Instance().PutMlc(key, value);
                                 }
                             } else {
-                                status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                                if (status.ok()) status = db->Put(leveldb::WriteOptions(), key, value);
-                                delete db;
+                                MlcDb::Instance().PutMlc(key, value);
                             }
                         }
                     }

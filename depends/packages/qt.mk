@@ -1,6 +1,6 @@
 PACKAGE=qt
 $(package)_version=5.9.8
-$(package)_download_path=https://download.qt.io/official_releases/qt/5.9/$($(package)_version)/submodules
+$(package)_download_path=https://download.qt.io/new_archive/qt/5.9/$($(package)_version)/submodules
 $(package)_suffix=opensource-src-$($(package)_version).tar.xz
 $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=9b9dec1f67df1f94bce2955c5604de992d529dde72050239154c56352da0907d
@@ -11,7 +11,7 @@ $(package)_qt_libs=corelib network widgets gui plugins testlib
 $(package)_patches=fix_qt_pkgconfig.patch mac-qmake.conf fix_configure_mac.patch fix_no_printer.patch
 $(package)_patches+= fix_rcc_determinism.patch fix_riscv64_arch.patch xkb-default.patch no-xlib.patch
 $(package)_patches+= fix_android_qmake_conf.patch fix_android_jni_static.patch dont_hardcode_pwd.patch
-$(package)_patches+= freetype_back_compat.patch drop_lrelease_dependency.patch fix_powerpc_libpng.patch
+$(package)_patches+= freetype_back_compat.patch drop_lrelease_dependency.patch fix_powerpc_libpng.patch fix_numeric_limits_include.patch
 
 # Update OSX_QT_TRANSLATIONS when this is updated
 $(package)_qttranslations_file_name=qttranslations-$($(package)_suffix)
@@ -213,7 +213,7 @@ define $(package)_preprocess_cmds
   patch -p1 -i $($(package)_patch_dir)/fix_android_qmake_conf.patch &&\
   patch -p1 -i $($(package)_patch_dir)/fix_android_jni_static.patch &&\
   echo "!host_build: QMAKE_CFLAGS     += $($(package)_cflags) $($(package)_cppflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
-  echo "!host_build: QMAKE_CXXFLAGS   += $($(package)_cxxflags) $($(package)_cppflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
+  echo "!host_build: QMAKE_CXXFLAGS   += $($(package)_cxxflags) $($(package)_cppflags) -Wno-deprecated-copy-with-user-provided-copy -Wno-deprecated-copy" >> qtbase/mkspecs/common/gcc-base.conf && \
   echo "!host_build: QMAKE_LFLAGS     += $($(package)_ldflags)" >> qtbase/mkspecs/common/gcc-base.conf && \
   patch -p1 -i $($(package)_patch_dir)/fix_riscv64_arch.patch &&\
   patch -p1 -i $($(package)_patch_dir)/no-xlib.patch &&\
@@ -224,7 +224,8 @@ define $(package)_preprocess_cmds
   sed -i.old "0,/^QMAKE_LFLAGS_/s|^QMAKE_LFLAGS_|!host_build: QMAKE_LFLAGS            = $($(package)_ldflags)\n&|" qtbase/mkspecs/win32-g++/qmake.conf && \
   sed -i.old "s|QMAKE_CC                = clang|QMAKE_CC                = $($(package)_cc)|" qtbase/mkspecs/common/clang.conf && \
   sed -i.old "s|QMAKE_CXX               = clang++|QMAKE_CXX               = $($(package)_cxx)|" qtbase/mkspecs/common/clang.conf && \
-  sed -i.old "s/LIBRARY_PATH/(CROSS_)?\0/g" qtbase/mkspecs/features/toolchain.prf
+  sed -i.old "s/LIBRARY_PATH/(CROSS_)?\0/g" qtbase/mkspecs/features/toolchain.prf && \
+  find . -name "qbytearraymatcher.h" -exec sed -i '1i #include <limits>' {} \;
 endef
 
 define $(package)_config_cmds

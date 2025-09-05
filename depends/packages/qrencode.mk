@@ -1,8 +1,8 @@
 package=qrencode
 $(package)_version=3.4.4
-$(package)_download_path=https://fukuchi.org/works/qrencode/
-$(package)_file_name=$(package)-$($(package)_version).tar.bz2
-$(package)_sha256_hash=efe5188b1ddbcbf98763b819b146be6a90481aac30cfc8d858ab78a19cde1fa5
+$(package)_download_path=https://github.com/fukuchi/libqrencode/archive/
+$(package)_file_name=v$($(package)_version).tar.gz
+$(package)_sha256_hash=ab7cdf84e3707573a39e116ebd33faa513b306201941df3f5e691568368d87bf
 
 define $(package)_set_vars
 $(package)_config_opts=--disable-shared --without-tools --without-tests --disable-sdltest
@@ -12,8 +12,13 @@ $(package)_config_opts_linux=--with-pic
 $(package)_config_opts_android=--with-pic
 endef
 
+# Fix for autotools missing macros - Universal sed compatibility
 define $(package)_preprocess_cmds
-  cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub use
+  cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub . && \
+  sed -i.bak 's/AM_PATH_SDL/# AM_PATH_SDL/g' configure.ac && \
+  sed -i.bak 's/AM_ICONV_LINK/# AM_ICONV_LINK/g' configure.ac && \
+  rm -f configure.ac.bak && \
+  autoreconf -fi
 endef
 
 define $(package)_config_cmds

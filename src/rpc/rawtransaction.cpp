@@ -48,6 +48,7 @@
 #include <wallet/rpcwallet.h>
 #include <wallet/wallet.h>
 #include <wallet/walletdb.h>
+#include <mlcdb.h>
 #include <wallet/walletutil.h>
 #include <interfaces/node.h>
 #include <thread>
@@ -2608,6 +2609,30 @@ static UniValue addmlckeyraw(const JSONRPCRequest &request) {
 }
 
 static UniValue getsponsorkey(const JSONRPCRequest &request) {
+    // Attempt automatic local recovery of myKey from wallet-owned keys and global MLC DB
+    auto try_restore_local_mykey = [&](CWallet* pwallet, const std::string& wallet_name)->bool{
+        if (!pwallet) return false;
+        const std::string key_my   = wallet_name.empty() ? std::string("StringKey")       : wallet_name;
+        const std::string key_show = wallet_name.empty() ? std::string("StringKeyToShow") : (wallet_name + std::string("_show"));
+
+        std::string existing;
+        if (MlcDb::Instance().GetMyKey(key_my, existing) && !existing.empty()) return true;
+
+        std::set<CKeyID> keyids = pwallet->GetKeys();
+        for (const CKeyID& keyid : keyids) {
+            CTxDestination dest = keyid;
+            std::string addr = EncodeDestination(dest);
+            if (addr.empty()) continue;
+            std::string sponsor;
+            if (MlcDb::Instance().GetMlc(addr, sponsor) && !sponsor.empty()) {
+                // Found wallet-owned MLC key; persist minimal local mapping
+                MlcDb::Instance().PutMyKey(key_my, addr);
+                MlcDb::Instance().PutMyKey(key_show, addr); // store address as a stable placeholder
+                return true;
+            }
+        }
+        return false;
+    };
     if (request.fHelp) {
         throw std::runtime_error(
                 RPCHelpMan{"getsponsorkey",
@@ -2646,6 +2671,16 @@ static UniValue getsponsorkey(const JSONRPCRequest &request) {
             return valueToCheck;
             //throw JSONRPCError(RPC_WALLET_ERROR, strprintf("you have already added the key: %s", valueToCheck));
         }else{
+            // Best-effort local restore
+            std::shared_ptr<CWallet> const walletp = GetWalletForJSONRPCRequest(request);
+            CWallet* const pwallet = walletp.get();
+            if (EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+                if (try_restore_local_mykey(pwallet, wallet_name)) {
+                    std::string out;
+                    if (MlcDb::Instance().GetMyKey(StringKeyToShow, out) && !out.empty()) return out;
+                    if (MlcDb::Instance().GetMyKey(StringKey, out) && !out.empty()) return out;
+                }
+            }
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("you have not added the key yet!"));
         }
     }else{
@@ -2659,6 +2694,16 @@ static UniValue getsponsorkey(const JSONRPCRequest &request) {
         if(valueToCheck != "" && value !=""){
             return valueToCheck;
         }else{
+            // Best-effort local restore
+            std::shared_ptr<CWallet> const walletp = GetWalletForJSONRPCRequest(request);
+            CWallet* const pwallet = walletp.get();
+            if (EnsureWalletIsAvailable(pwallet, request.fHelp)) {
+                if (try_restore_local_mykey(pwallet, wallet_name)) {
+                    std::string out;
+                    if (MlcDb::Instance().GetMyKey(StringKeyToShow, out) && !out.empty()) return out;
+                    if (MlcDb::Instance().GetMyKey(StringKey, out) && !out.empty()) return out;
+                }
+            }
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("you have not added the key yet!"));
         }
     }

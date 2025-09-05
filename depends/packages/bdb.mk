@@ -16,8 +16,12 @@ $(package)_cppflags_mingw32=-DUNICODE -D_UNICODE
 endef
 
 define $(package)_preprocess_cmds
-  patch -p1 < $($(package)_patch_dir)/clang_cxx_11.patch && \
-  cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub dist
+  cp -f $(BASEDIR)/config.guess $(BASEDIR)/config.sub dist && \
+  sed -i.bak 's/atomic_init(/atomic_init_db(/g' dbinc/atomic.h && \
+  sed -i.bak 's/atomic_compare_exchange(/atomic_compare_exchange_db(/g' dbinc/atomic.h && \
+  find . -name "*.c" -exec sed -i.bak 's/atomic_init(/atomic_init_db(/g' {} \; && \
+  find . -name "*.c" -exec sed -i.bak 's/atomic_compare_exchange(/atomic_compare_exchange_db(/g' {} \; && \
+  find . -name "*.bak" -delete
 endef
 
 define $(package)_config_cmds

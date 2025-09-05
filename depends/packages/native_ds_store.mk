@@ -7,10 +7,12 @@ $(package)_install_libdir=$(build_prefix)/lib/python3/dist-packages
 $(package)_dependencies=native_biplist
 
 define $(package)_build_cmds
-    python3 setup.py build
+    python3 -m pip install --break-system-packages --no-deps --target=./build_temp setuptools wheel && \
+    PYTHONPATH=./build_temp python3 setup.py build
 endef
 
 define $(package)_stage_cmds
     mkdir -p $($(package)_install_libdir) && \
-    python3 setup.py install --root=$($(package)_staging_dir) --prefix=$(build_prefix) --install-lib=$($(package)_install_libdir)
+    python3 -m pip install --break-system-packages --no-deps --target=./build_temp setuptools wheel && \
+    PYTHONPATH=./build_temp python3 setup.py install --root=$($(package)_staging_dir) --prefix=$(build_prefix) --install-lib=$($(package)_install_libdir)
 endef

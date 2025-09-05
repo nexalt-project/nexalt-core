@@ -94,3 +94,75 @@ On main overview page their is a Button "Add sponsor Key" click on it a popup sh
 Console Method:
 To add sponsor key you must need some amount in your wallet to pay some basic fee.
 Than call "addmlckeyraw" and pass sponsor's key as argument and wait for some time that your key should be mined in BlockChain. 
+
+Staking Setup
+-------------
+Follow these steps to enable staking reliably and quickly:
+
+1. Configure `nexalt.conf` (daemon config)
+
+   Create or edit `~/.nexalt/nexalt.conf` (Linux) and add:
+
+```
+server=1
+rpcuser=<set-a-strong-user>
+rpcpassword=<set-a-strong-password>
+rpcallowip=127.0.0.1
+rpcbind=127.0.0.1
+
+# Networking (optional but recommended)
+listen=1
+maxconnections=64
+
+# Staking
+staking=1
+
+# Fast validation gating during sync (optional)
+# Keeps sync fast while still enforcing strict checks near tip.
+fastmlc=1
+# Adjust to a safe height buffer near current tip; set 0 to disable explicit height gating
+mlcfastheight=0
+
+# Optional indexes/utilities
+txindex=1
+```
+
+2. Start the daemon
+
+```
+nexaltd -daemon
+```
+
+3. Verify staking status
+
+```
+nexalt-cli getstakinginfo
+```
+
+Expected fields should indicate staking is enabled and kernels are being searched when your wallet is unlocked and mature balance is available.
+
+4. Wallet unlock for staking only (if wallet is encrypted)
+
+```
+nexalt-cli walletpassphrase "<your passphrase>" 99999999 true
+```
+
+The final `true` keeps the wallet unlocked for staking only.
+
+5. Sponsor key (MLC) check (optional)
+
+```
+nexalt-cli getsponsorkey
+```
+
+If you previously added a sponsor key on this wallet, the node auto-restores it after resync. If needed, add it via GUI ("Add MLC Key") or:
+
+```
+nexalt-cli addmlckeyraw <SPONSOR_MLCK_TXID> true
+```
+
+Notes
+-----
+- `staking=1` enables proof-of-stake block creation on your node.
+- `fastmlc`/`mlcfastheight` are optional runtime knobs for faster initial sync; strict validation resumes automatically near chain tip. You can set `fastmlc=0` to always enforce strict checks.
+- Ensure your wallet has mature, spendable balance and system time is correct.

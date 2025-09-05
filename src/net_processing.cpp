@@ -4098,16 +4098,43 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
         // Message: getdata (blocks)
         //
         std::vector<CInv> vGetData;
-        if (!pto->fClient && ((fFetch && !pto->m_limited_node) || !IsInitialBlockDownload()) && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
-            std::vector<const CBlockIndex*> vToDownload;
-            NodeId staller = -1;
-            FindNextBlocksToDownload(pto->GetId(), MAX_BLOCKS_IN_TRANSIT_PER_PEER - state.nBlocksInFlight, vToDownload, staller, consensusParams);
-            for (const CBlockIndex *pindex : vToDownload) {
-                uint32_t nFetchFlags = GetFetchFlags(pto);
-                vGetData.push_back(CInv(MSG_BLOCK | nFetchFlags, pindex->GetBlockHash()));
-                MarkBlockAsInFlight(pto->GetId(), pindex->GetBlockHash(), pindex);
-                LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n", pindex->GetBlockHash().ToString(),
-                         pindex->nHeight, pto->GetId());
+        // Initialize outside branch so stall detection can use it
+        NodeId staller = -1;
+        if (!pto->fClient && ((fFetch && !pto->m_limited_node) || !IsInitialBlockDownload())) {
+            // Allow a slightly larger in-flight window during IBD to improve throughput
+            const int max_per_peer = IsInitialBlockDownload() ? std::max(32, MAX_BLOCKS_IN_TRANSIT_PER_PEER) : MAX_BLOCKS_IN_TRANSIT_PER_PEER;
+            if (state.nBlocksInFlight < max_per_peer) {
+                std::vector<const CBlockIndex*> vToDownload;
+                FindNextBlocksToDownload(pto->GetId(), max_per_peer - state.nBlocksInFlight, vToDownload, staller, consensusParams);
+
+                // Lightweight de-duplication of recent block requests (IBD only)
+                static const int64_t RECENT_BLOCK_TTL = 60; // seconds
+                static std::map<uint256, int64_t> g_recent_block_requests;
+
+                const int64_t now = GetTime();
+                // Periodic cleanup to avoid unbounded growth
+                if (IsInitialBlockDownload() && g_recent_block_requests.size() > 200000) {
+                    for (auto it = g_recent_block_requests.begin(); it != g_recent_block_requests.end(); ) {
+                        if (it->second <= now) it = g_recent_block_requests.erase(it); else ++it;
+                    }
+                }
+
+                for (const CBlockIndex *pindex : vToDownload) {
+                    const uint256 hash = pindex->GetBlockHash();
+                    if (IsInitialBlockDownload()) {
+                        auto it = g_recent_block_requests.find(hash);
+                        if (it != g_recent_block_requests.end() && it->second > now) {
+                            // Recently requested; skip duplicate getdata for now
+                            continue;
+                        }
+                        g_recent_block_requests[hash] = now + RECENT_BLOCK_TTL;
+                    }
+
+                    uint32_t nFetchFlags = GetFetchFlags(pto);
+                    vGetData.push_back(CInv(MSG_BLOCK | nFetchFlags, hash));
+                    MarkBlockAsInFlight(pto->GetId(), hash, pindex);
+                    LogPrint(BCLog::NET, "Requesting block %s (%d) peer=%d\n", hash.ToString(), pindex->nHeight, pto->GetId());
+                }
             }
             if (state.nBlocksInFlight == 0 && staller != -1) {
                 if (State(staller)->nStallingSince == 0) {

@@ -344,6 +344,10 @@ void UnloadBlockIndex();
 void ThreadScriptCheck();
 /** Check whether we are doing an initial block download (synchronizing from disk or network) */
 bool IsInitialBlockDownload();
+// Returns true if MLC/upline heavy checks should be relaxed for this height
+bool IsMlcFastPath(int nHeight);
+// Returns true if PoS speed checks should be relaxed for this height (IBD fast path)
+bool IsPosFastPath(int nHeight);
 
 uint256 GetProofOfStakeLimit(int nHeight);
 

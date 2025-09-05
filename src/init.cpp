@@ -24,6 +24,7 @@
 #include <index/txindex.h>
 #include <key.h>
 #include <validation.h>
+#include <snapshot.h>
 #include <miner.h>
 #include <netbase.h>
 #include <net.h>
@@ -524,6 +525,9 @@ void SetupServerArgs()
     gArgs.AddArg("-uacomment=<cmt>", "Append comment to the user agent string", false, OptionsCategory::DEBUG_TEST);
     gArgs.AddArg("-staking", strprintf("Stake your coins to support network and gain reward(default: %s)", DEFAULT_STAKE), true , OptionsCategory::OPTIONS);
     gArgs.AddArg("-boostspeed", strprintf("Boost your downloading speed by overcoming some validation default value :(default: %s).", BOOST_DOWNLOAD), true , OptionsCategory::OPTIONS);
+    gArgs.AddArg("-fastmlc", "Speed up initial sync by relaxing MLC/upline checks during initial block download; full checks remain for recent blocks (default: 1)", false, OptionsCategory::CHAINPARAMS);
+    gArgs.AddArg("-mlcfastheight", "Height up to which MLC/upline checks are relaxed (overrides IBD gating). 0 disables explicit height threshold.", false, OptionsCategory::CHAINPARAMS);
+    gArgs.AddArg("-snapshot", "Path to snapshot directory containing manifest.json and optional mlc.txt (default: none)", false, OptionsCategory::CHAINPARAMS);
 
     gArgs.AddArg("-masternode", strprintf("Enable the client to act as a masternode (0-1, default: %u)", 0), true, OptionsCategory::OPTIONS);
     gArgs.AddArg("-mnconf=<file>", strprintf("Specify masternode configuration file (default: %s)", "masternode.conf"), false, OptionsCategory::OPTIONS);
@@ -1310,6 +1314,20 @@ bool AppInitMain(InitInterfaces& interfaces)
     InitScriptExecutionCache();
 
     LogPrintf("Using %u threads for script verification\n", nScriptCheckThreads);
+    // Snapshot: install MLC snapshot if provided
+    const std::string snapshotPath = gArgs.GetArg("-snapshot", "");
+    if (!snapshotPath.empty()) {
+        SnapshotManifest man;
+        if (Snapshot::LoadManifest(snapshotPath, man) && Snapshot::VerifyManifest(man)) {
+            LogPrintf("Using snapshot manifest height=%d block=%s\n", man.height, man.blockHashHex);
+            if (!Snapshot::MaybeInstallMlcSnapshot(snapshotPath)) {
+                LogPrintf("[SNAPSHOT] Failed to install MLC snapshot\n");
+            }
+            Snapshot::StartBackgroundMlcVerifier();
+        } else {
+            LogPrintf("[SNAPSHOT] Invalid or missing manifest at %s\n", snapshotPath);
+        }
+    }
     if (nScriptCheckThreads) {
         for (int i=0; i<nScriptCheckThreads-1; i++)
             threadGroup.create_thread(&ThreadScriptCheck);

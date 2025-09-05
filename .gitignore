@@ -64,6 +64,7 @@ src/qt/bitcoin-qt.includes
 *.o
 *.o-*
 *.patch
+!depends/patches/**/*.patch
 *.a
 *.pb.cc
 *.pb.h
@@ -83,6 +84,7 @@ src/qt/bitcoin-qt.includes
 # Compilation and Qt preprocessor part
 *.qm
 Makefile
+!depends/Makefile
 nexalt-qt
 nexalt-Qt.app
 background.tiff*
@@ -124,3 +126,41 @@ db4/
 
 # clang-check
 *.plist
+
+# Mac deployment and build artifacts
+*.app/
+*.dmg
+Nexalt-Core.app/
+Nexalt-Wallet.app/
+Nexalt Wallet.app/
+
+# Boost build artifacts
+boost_*/
+
+# Berkeley DB build artifacts  
+db4/
+
+# Build directories
+build/
+depends/built/
+depends/work/
+depends/sources/
+
+# Static analysis and debugging
+*.dSYM/
+*.dwarf
+
+# Temporary files from our build process
+*.tar.gz
+*.zip
+wanaddr
+lanaddr
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes

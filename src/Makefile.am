@@ -396,6 +396,8 @@ libbitcoin_server_a_SOURCES = \
   masternode.cpp \
   masternodeconfig.cpp \
   miner.cpp \
+  snapshot.cpp \
+  mlcdb.cpp \
   net.cpp \
   net_processing.cpp \
   node/transaction.cpp \

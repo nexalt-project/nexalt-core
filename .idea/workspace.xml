@@ -3,6 +3,11 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/Environment/Hierarchy/GeneratedFilesCacheKey/Timestamp/@EntryValue" value="4" type="long" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -31,17 +36,58 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60a0750d-3cc2-4bf6-ad09-c84ebe765e3c" name="Default Changelist" comment="testnet added">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/configure.ac" beforeDir="false" afterPath="$PROJECT_DIR$/configure.ac" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chainparams.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/chainparams.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/chainparams.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/chainparams.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/config.site.in" beforeDir="false" afterPath="$PROJECT_DIR$/depends/config.site.in" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/funcs.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/funcs.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/bdb.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/bdb.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/boost.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/boost.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/libevent.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/libevent.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/libfmt.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/libfmt.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/miniupnpc.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/miniupnpc.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/native_biplist.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/native_biplist.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/native_ds_store.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/native_ds_store.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/native_mac_alias.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/native_mac_alias.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/openssl.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/openssl.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/qrencode.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/qrencode.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/qt.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/qt.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/xcb_proto.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/xcb_proto.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/zeromq.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/zeromq.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/depends/packages/zlib.mk" beforeDir="false" afterPath="$PROJECT_DIR$/depends/packages/zlib.mk" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/README_windows.txt" beforeDir="false" afterPath="$PROJECT_DIR$/doc/README_windows.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Makefile.am" beforeDir="false" afterPath="$PROJECT_DIR$/src/Makefile.am" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/chainparamsseeds.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/chainparamsseeds.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/consensus/tx_verify.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/consensus/tx_verify.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cpp-ethereum/libdevcore/Common.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/cpp-ethereum/libdevcore/Common.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cpp-ethereum/libdevcore/vector_ref.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/cpp-ethereum/libdevcore/vector_ref.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/darksend.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/darksend.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dbwrapper.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbwrapper.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/init.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/init.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/miner.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/miner.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/net.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/net.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/net_processing.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/net_processing.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rpc/mining.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/mining.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/masternodemanager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/masternodemanager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/bitcoin.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/bitcoin.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/clock_0.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/clock_0.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/clock_1.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/clock_1.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/clock_2.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/clock_2.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/clock_3.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/clock_3.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/hd_disabled.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/hd_disabled.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/hd_enabled.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/hd_enabled.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/mine.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/mine.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/tx_in.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/tx_in.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/tx_inout.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/tx_inout.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/qt/res/src/verify.svg" beforeDir="false" afterPath="$PROJECT_DIR$/src/qt/res/src/verify.svg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/rpc/rawtransaction.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/rpc/rawtransaction.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/stake.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/stake.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/support/lockedpool.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/support/lockedpool.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/bip32.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/bip32.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/util/system.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/util/system.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/validation.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/validation.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/version.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/version.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/validation.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/validation.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/wallet/db.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/wallet/db.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/wallet/walletutil.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/wallet/walletutil.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,8 +108,19 @@
     </projectState>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="master" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;nexalt-project&quot;
+  }
+}</component>
   <component name="GitSEFilterConfiguration">
     <file-type-list>
       <filtered-out-file-type name="LOCAL_BRANCH" />
@@ -72,6 +129,12 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/nexalt-project/nexalt-core.git&quot;,
+    &quot;accountId&quot;: &quot;cdad1c87-246d-41bf-b541-be0410e91369&quot;
+  }
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/src/validation.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/pow.cpp" root0="FORCE_HIGHLIGHTING" />
@@ -85,28 +148,32 @@
     <setting file="file://$PROJECT_DIR$/src/chainparams.h" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/chainparams.cpp" root0="FORCE_HIGHLIGHTING" />
   </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="1mgokV1DrKTDHcR1FofoyV4nkPY" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="RunOnceActivity.cidr.known.project.marker" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="cf.advertisement.text.has.clang-format" value="true" />
-    <property name="cf.first.check.clang-format" value="false" />
-    <property name="cidr.known.project.marker" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="node.js.detected.package.eslint" value="true" />
-    <property name="node.js.detected.package.tslint" value="true" />
-    <property name="node.js.path.for.package.eslint" value="project" />
-    <property name="node.js.path.for.package.tslint" value="project" />
-    <property name="node.js.selected.package.eslint" value="(autodetect)" />
-    <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.github.ui.GithubSettingsConfigurable" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "2025-09",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -184,6 +251,8 @@
       <workItem from="1621422979710" duration="1484000" />
       <workItem from="1621424857824" duration="1848000" />
       <workItem from="1621426838815" duration="629000" />
+      <workItem from="1757072945942" duration="7000" />
+      <workItem from="1757072978387" duration="340000" />
     </task>
     <task id="LOCAL-00001" summary="masternodes and pos updated">
       <created>1609926691775</created>
@@ -215,7 +284,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="masternodes and pos updated" />
@@ -225,16 +293,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/masternode.cpp</url>
-          <line>227</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/src/core_write.cpp</url>
-          <line>178</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/rpc/rawtransaction.cpp</url>
           <line>125</line>

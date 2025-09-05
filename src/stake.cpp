@@ -24,6 +24,7 @@
 #include <boost/thread.hpp>
 #include <atomic>
 #include <pow.h>
+#include <validation.h>
 #include <test/test_bitcoin.h>
 #include <shutdown.h>
 #include <net.h>
@@ -36,6 +37,7 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <mlcdb.h>
 
 #if defined(DEBUG_DUMP_STAKING_INFO)
 #  include "DEBUG_DUMP_STAKING_INFO.hpp"
@@ -634,8 +636,10 @@ bool Stake::getPrevBlock(const CBlock& curBlock, CBlock &prevBlock, int &nBlockH
     {
         return false;
     }
-    if (!curBlock.vtx[1]->IsCoinStake())
-        return error("%s: called on non-coinstake s", __func__);
+    if (!curBlock.vtx[1]->IsCoinStake()) {
+        pos_debug("%s: called on non-coinstake (skipping)\n", __func__);
+        return false;
+    }
 
     // Kernel (input 0) must match the stake hash target per coin age (nBits).
     const CTxIn& txin = curBlock.vtx[1]->vin[0];
@@ -654,8 +658,10 @@ bool Stake::getPrevBlock(const CBlock& curBlock, CBlock &prevBlock, int &nBlockH
         return error("%s: read block failed", __func__);
 
     nBlockHeight = pindex->nHeight;
-    // Read block header.
-     return ReadBlockFromDisk(prevBlock, pindex->GetBlockPos(),  consensusparams);
+    // Optimization: avoid disk read; only time is used by callers.
+    prevBlock = CBlock();
+    prevBlock.nTime = (uint32_t)pindex->GetBlockTime();
+    return true;
 }
 
 bool Stake::isSpeedAccepted(CBlock prevBlock, CBlock& prev1Block, int& height, int nBlockHeight,const unsigned ind){
@@ -668,9 +674,11 @@ bool Stake::isSpeedAccepted(CBlock prevBlock, CBlock& prev1Block, int& height, i
 
     if (!getPrevBlock(prevBlock, prev1Block, height))
     {
-        pos_debug("POS: Block %u is accepted\n", nBlockHeight);
-        if (Params().NetworkIDString() == CBaseChainParams::TESTNET)
-            return true;
+        pos_debug("POS: no prev coinstake context, accept (height=%u)\n", nBlockHeight);
+        if (IsPosFastPath(nBlockHeight)) return true; // during IBD fast path, don't recurse further
+        if (Params().NetworkIDString() == CBaseChainParams::TESTNET) return true;
+        // On mainnet outside fast path, absence of prev coinstake context: treat as accepted
+        return true;
     }
 
     unsigned int prev1Time = prev1Block.GetBlockTime();
@@ -788,7 +796,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
     unsigned int nTime = block.nTime;
 
 
-            if (!isSpeedValid(nTime, prevBlock, pindex, nBlockHeight))
+            if (!IsPosFastPath(nBlockHeight) && !isSpeedValid(nTime, prevBlock, pindex, nBlockHeight))
         {
 
 //#ifdef POS_DEBUG
@@ -821,7 +829,7 @@ bool Stake::CheckProof(CBlockIndex* const pindexPrev, const CBlock &block, uint2
 #endif            
         }
 
-        if (!isSpeedValid(nTime, prevBlock, pindex, nBlockHeight))
+        if (!IsPosFastPath(nBlockHeight) && !isSpeedValid(nTime, prevBlock, pindex, nBlockHeight))
         {
 #ifdef POS_DEBUG
             isValidSpeed = false;
@@ -1095,10 +1103,8 @@ bool IsSponsorKeySavedStake(std::string wallet_name){
     if(wallet_name == ""){
         std::string StringKeyToShow = "StringKeyToShow";
         std::string StringKey = "StringKey";
-        leveldb::Status status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), StringKeyToShow, &valueToCheck);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), StringKey, &value);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(StringKeyToShow, valueToCheck);
+        MlcDb::Instance().GetMyKey(StringKey, value);
         if(valueToCheck == "" && value ==""){
             return false;
         }else{
@@ -1106,10 +1112,8 @@ bool IsSponsorKeySavedStake(std::string wallet_name){
         }
     }else{
         std::string wallet_name_show = wallet_name +"_show";
-        leveldb::Status status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), wallet_name_show, &valueToCheck);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), wallet_name, &value);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(wallet_name_show, valueToCheck);
+        MlcDb::Instance().GetMyKey(wallet_name, value);
         if(valueToCheck == "" && value ==""){
             return false;
         }else{
@@ -1139,29 +1143,17 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
                            "Your sponsor key is not added. Kindly add it using console command <addmlckeyraw sponsor_key>.");*/
     }
     std::string std_data_dir = GetDataDir().string();
-    //my key db
-    leveldb::DB *db_my;
-    leveldb::Options options_my;
-    options_my.create_if_missing = true;
-    //mlc db
-    leveldb::DB *db;
-    leveldb::Options options;
-    options.create_if_missing = true;
     std::string value_sponser_up;
     //open db.
     if(mlc_wallet_name == ""){
         std::string StringKey = "StringKey";
         std::string value_my;
-        leveldb::Status status_own = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_own.ok()) status_own = db_my->Get(leveldb::ReadOptions(), StringKey, &value_my);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(StringKey, value_my);
         if(value_my !="") {
             this_is_my_key_stake = value_my;
             for (int i = 1; i < 11; ++i) {
                 value_sponser_up = "";
-                leveldb::Status status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                if (status.ok()) status = db->Get(leveldb::ReadOptions(), value_my, &value_sponser_up);
-                delete db;
+                MlcDb::Instance().GetMlc(value_my, value_sponser_up);
                 if (value_sponser_up == "") {
                 } else {
                     KeyValueStake.push_back(value_sponser_up);
@@ -1173,16 +1165,12 @@ bool Stake::CreateCoinStake(CWallet* wallet, const CKeyStore& keystore, unsigned
     } else{
         std::string StringKey = mlc_wallet_name;
         std::string value_my;
-        leveldb::Status status_own = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_own.ok()) status_own = db_my->Get(leveldb::ReadOptions(), StringKey, &value_my);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(StringKey, value_my);
         if(value_my !="") {
             this_is_my_key_stake = value_my;
             for (int i = 1; i < 11; ++i) {
                 value_sponser_up = "";
-                leveldb::Status status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                if (status.ok()) status = db->Get(leveldb::ReadOptions(), value_my, &value_sponser_up);
-                delete db;
+                MlcDb::Instance().GetMlc(value_my, value_sponser_up);
                 if (value_sponser_up == "") {
                 } else {
                     KeyValueStake.push_back(value_sponser_up);

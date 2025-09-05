@@ -1,0 +1,13 @@
+--- a/boost/mpl/aux_/integral_wrapper.hpp
++++ b/boost/mpl/aux_/integral_wrapper.hpp
+@@ -70,8 +70,8 @@ struct AUX_WRAPPER_NAME
+ #   if BOOST_WORKAROUND(__EDG_VERSION__, <= 243)
+     typedef AUX_WRAPPER_INST(AUX_WRAPPER_VALUE_TYPE, (value + 1)) next;
+     typedef AUX_WRAPPER_INST(AUX_WRAPPER_VALUE_TYPE, (value - 1)) prior;
+ #   else
+-    typedef AUX_WRAPPER_INST( BOOST_MPL_AUX_STATIC_CAST(AUX_WRAPPER_VALUE_TYPE, (value + 1)) ) next;
+-    typedef AUX_WRAPPER_INST( BOOST_MPL_AUX_STATIC_CAST(AUX_WRAPPER_VALUE_TYPE, (value - 1)) ) prior;
++    typedef AUX_WRAPPER_INST( (value + 1) ) next;
++    typedef AUX_WRAPPER_INST( (value - 1) ) prior;
+ #   endif
+ #endif

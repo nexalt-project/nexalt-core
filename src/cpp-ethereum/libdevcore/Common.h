@@ -45,7 +45,7 @@
 #include <functional>
 #include <string>
 #include <chrono>
-#include <boost/functional/hash/hash.hpp>
+#include <boost/functional.hpp>
 
 #ifndef __APPLE__
 #pragma warning(push)
@@ -341,7 +341,11 @@ template <> struct hash<dev::u256>
 	{
 		unsigned size = _a.backend().size();
 		auto limbs = _a.backend().limbs();
-		return boost::hash_range(limbs, limbs + size);
+		std::size_t seed = 0;
+		for (unsigned i = 0; i < size; ++i) {
+			seed ^= std::hash<uint64_t>{}(static_cast<uint64_t>(limbs[i])) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		}
+		return seed;
 	}
 };
 

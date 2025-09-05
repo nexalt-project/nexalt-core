@@ -13,6 +13,7 @@
 #include <memenv.h>
 #include <stdint.h>
 #include <algorithm>
+#include <validation.h>
 
 class CBitcoinLevelDBLogger : public leveldb::Logger {
 public:
@@ -115,7 +116,7 @@ static leveldb::Options GetOptions(size_t nCacheSize)
 }
 
 CDBWrapper::CDBWrapper(const fs::path& path, size_t nCacheSize, bool fMemory, bool fWipe, bool obfuscate)
-    : m_name(fs::basename(path))
+    : m_name(path.filename().string())
 {
     penv = nullptr;
     readoptions.verify_checksums = true;
@@ -182,7 +183,8 @@ CDBWrapper::~CDBWrapper()
 
 bool CDBWrapper::WriteBatch(CDBBatch& batch, bool fSync)
 {
-    const bool log_memory = LogAcceptCategory(BCLog::LEVELDB);
+    // Skip excessive memory logging during IBD to reduce noise and improve performance
+    const bool log_memory = LogAcceptCategory(BCLog::LEVELDB) && !IsInitialBlockDownload();
     double mem_before = 0;
     if (log_memory) {
         mem_before = DynamicMemoryUsage() / 1024.0 / 1024;

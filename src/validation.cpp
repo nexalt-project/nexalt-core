@@ -1744,6 +1744,41 @@ bool IsInitialBlockDownload()
     return false;
 }
 
+bool IsMlcFastPath(int nHeight)
+{
+    // Allow disabling via flag
+    if (!gArgs.GetBoolArg("-fastmlc", true)) return false;
+    // Explicit height threshold via arg (overrides IBD state)
+    int fastHeight = gArgs.GetArg("-mlcfastheight", -1);
+    if (fastHeight > 0) {
+        return nHeight <= fastHeight;
+    }
+    // If not in IBD and no explicit override, do not relax
+    if (!IsInitialBlockDownload()) return false;
+    // Fallback: use assumevalid anchor's ancestors if available
+    LOCK(cs_main);
+    if (!hashAssumeValid.IsNull()) {
+        const CBlockIndex* pav = LookupBlockIndex(hashAssumeValid);
+        if (pav) return nHeight <= pav->nHeight;
+    }
+    // Default: while IBD, relax for all processed heights so far
+    return true;
+}
+
+bool IsPosFastPath(int nHeight)
+{
+    // Mirror MLC gating semantics but allow explicit override regardless of IBD
+    int fastHeight = gArgs.GetArg("-mlcfastheight", -1);
+    if (fastHeight > 0) return nHeight <= fastHeight;
+    if (!IsInitialBlockDownload()) return false;
+    LOCK(cs_main);
+    if (!hashAssumeValid.IsNull()) {
+        const CBlockIndex* pav = LookupBlockIndex(hashAssumeValid);
+        if (pav) return nHeight <= pav->nHeight;
+    }
+    return true;
+}
+
 uint256 GetProofOfStakeLimit(int nHeight)
 {
     return ArithToUint256(bnProofOfStakeLimitV2);
@@ -4318,6 +4353,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         nHeight = pindexPrev->nHeight;
     }
 
+    // Integrate configurable fast path gating for MLC/PoS checks
+    if (!enableDownloadingCheck && IsMlcFastPath(nHeight)) {
+        enableDownloadingCheck = true;
+    }
+
     // Size limits
     if (block.vtx.empty() || block.vtx.size() * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT || ::GetSerializeSize(block, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS) * WITNESS_SCALE_FACTOR > MAX_BLOCK_WEIGHT)
         return state.DoS(100, false, REJECT_INVALID, "bad-blk-length", false, "size limits failed");
@@ -4327,9 +4367,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
         return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "first tx is not coinbase");
     } else {
         if (block.IsProofOfStake()) {
-        if (block.vtx[1]->vout.size() < 11 && nHeight > 490) {
-            //std::cout<<"Block rejected.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight <<"\n";
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinstake.");
+        if (!IsMlcFastPath(nHeight)) {
+            if (block.vtx[1]->vout.size() < 11 && nHeight > 490) {
+                //std::cout<<"Block rejected.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight <<"\n";
+                return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinstake.");
+            }
         }
     }
         //std::cout<<"Block Accepted.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight<<"\n";
@@ -4351,9 +4393,11 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
             }
         }
         //mlc checking in coinstake transaction
-        if (block.vtx[1]->vout.size() < 11 && nHeight > 450) {
-            //std::cout<<"Block rejected.. ################"<<block.vtx[1]->vout.size() << ", Height of block: " << nHeight <<"\n";
-            return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinstake.");
+        if (!IsMlcFastPath(nHeight)) {
+            if (block.vtx[1]->vout.size() < 11 && nHeight > 450) {
+                //std::cout<<"Block rejected.. ################"<<block.vtx[1]->vout.size() << ", Height of block: " << nHeight <<"\n";
+                return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinstake.");
+            }
         }
 
         //Don't allow contract opcodes in coinstake for safety
@@ -4364,10 +4408,12 @@ bool CheckBlock(const CBlock& block, CValidationState& state, const Consensus::P
     else if (block.IsProofOfWork()){
         //mlc checking in coinbase transaction
 
-        if (block.GetBlockTime() < START_POS_BLOCK_V2) {
-            if (block.vtx[0]->vout.size() < 11 && nHeight > 450) {
-                //std::cout<<"Block rejected.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight <<"\n";
-                return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinbase.");
+        if (!IsMlcFastPath(nHeight)) {
+            if (block.GetBlockTime() < START_POS_BLOCK_V2) {
+                if (block.vtx[0]->vout.size() < 11 && nHeight > 450) {
+                    //std::cout<<"Block rejected.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight <<"\n";
+                    return state.DoS(100, false, REJECT_INVALID, "bad-cb-missing", false, "No MLC found in coinbase.");
+                }
             }
         }
         //std::cout<<"Block Accepted.. ################"<<block.vtx[0]->vout.size() << ", Height of block: " << nHeight<<"\n";

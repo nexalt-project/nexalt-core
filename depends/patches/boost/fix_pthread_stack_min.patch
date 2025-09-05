@@ -1,0 +1,15 @@
+--- a/boost/thread/pthread/thread_data.hpp
++++ b/boost/thread/pthread/thread_data.hpp
+@@ -57,7 +57,11 @@
+ #else
+           std::size_t page_size = ::sysconf( _SC_PAGESIZE);
+ #endif
+-#if PTHREAD_STACK_MIN > 0
++#ifndef PTHREAD_STACK_MIN
++#define PTHREAD_STACK_MIN 16384
++#endif
++
++#if PTHREAD_STACK_MIN > 0
+           if (size<PTHREAD_STACK_MIN) size=PTHREAD_STACK_MIN;
+ #endif
+           size = ((size+page_size-1)/page_size)*page_size;

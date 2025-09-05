@@ -40,6 +40,7 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <mlcdb.h>
 #include <masternode.h>
 #include <core_io.h>
 #include "stake.h"
@@ -294,10 +295,8 @@ bool IsSponsorSaved(std::string wallet_name){
     if(wallet_name == ""){
         std::string StringKeyToShow = "StringKeyToShow";
         std::string StringKey = "StringKey";
-        leveldb::Status status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), StringKeyToShow, &valueToCheck);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), StringKey, &value);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(StringKeyToShow, valueToCheck);
+        MlcDb::Instance().GetMyKey(StringKey, value);
         if(valueToCheck == "" && value ==""){
             return false;
         }else{
@@ -305,10 +304,8 @@ bool IsSponsorSaved(std::string wallet_name){
         }
     }else{
         std::string wallet_name_show = wallet_name +"_show";
-        leveldb::Status status_my = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), wallet_name_show, &valueToCheck);
-        if (status_my.ok()) status_my = db_my->Get(leveldb::ReadOptions(), wallet_name, &value);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(wallet_name_show, valueToCheck);
+        MlcDb::Instance().GetMyKey(wallet_name, value);
         if(valueToCheck == "" && value ==""){
             return false;
         }else{
@@ -373,29 +370,17 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     }
     bool SpKey = IsSponsorSaved(mlc_wallet_name);
     std::string std_data_dir = GetDataDir().string();
-    //my key db
-    leveldb::DB *db_my;
-    leveldb::Options options_my;
-    options_my.create_if_missing = true;
-    //mlc db
-    leveldb::DB *db;
-    leveldb::Options options;
-    options.create_if_missing = true;
     std::string value_sponser_up;
     //open db.
     if(mlc_wallet_name == ""){
         std::string StringKey = "StringKey";
         std::string value_my;
-        leveldb::Status status_own = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_own.ok()) status_own = db_my->Get(leveldb::ReadOptions(), StringKey, &value_my);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(StringKey, value_my);
         if(value_my !="") {
             this_is_my_key = value_my;
             for (int i = 1; i < 11; ++i) {
                 value_sponser_up = "";
-                leveldb::Status status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                if (status.ok()) status = db->Get(leveldb::ReadOptions(), value_my, &value_sponser_up);
-                delete db;
+                MlcDb::Instance().GetMlc(value_my, value_sponser_up);
                 if (value_sponser_up == "") {
                 } else {
                     KeyValue.push_back(value_sponser_up);
@@ -406,16 +391,12 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     }else{
         std::string StringKey = mlc_wallet_name;
         std::string value_my;
-        leveldb::Status status_own = leveldb::DB::Open(options_my, std_data_dir + "/myKey", &db_my);
-        if (status_own.ok()) status_own = db_my->Get(leveldb::ReadOptions(), StringKey, &value_my);
-        delete db_my;
+        MlcDb::Instance().GetMyKey(StringKey, value_my);
         if(value_my !="") {
             this_is_my_key = value_my;
             for (int i = 1; i < 11; ++i) {
                 value_sponser_up = "";
-                leveldb::Status status = leveldb::DB::Open(options, std_data_dir + "/mlc", &db);
-                if (status.ok()) status = db->Get(leveldb::ReadOptions(), value_my, &value_sponser_up);
-                delete db;
+                MlcDb::Instance().GetMlc(value_my, value_sponser_up);
                 if (value_sponser_up == "") {
                 } else {
                     KeyValue.push_back(value_sponser_up);

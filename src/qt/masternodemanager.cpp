@@ -14,6 +14,7 @@
 #include "init.h"
 #include "rpc/server.h"
 #include <boost/lexical_cast.hpp>
+#include <boost/bind/bind.hpp>
 #include <fstream>
 #include "guiutil.h"
 #include <shutdown.h>
@@ -129,13 +130,13 @@ void MasternodeManager::subscribeToCoreSignals()
 {
     // Connect signals to core
 
-    uiInterface.NotifyLuxNodeChanged.connect(boost::bind(&NotifyLuxNodeUpdated, this, _1));
+    uiInterface.NotifyLuxNodeChanged.connect(boost::bind(&NotifyLuxNodeUpdated, this, boost::placeholders::_1));
 }
 
 void MasternodeManager::unsubscribeFromCoreSignals()
 {
     // Disconnect signals from core
-    uiInterface.NotifyLuxNodeChanged.disconnect(boost::bind(&NotifyLuxNodeUpdated, this, _1));
+    uiInterface.NotifyLuxNodeChanged.disconnect(boost::bind(&NotifyLuxNodeUpdated, this, boost::placeholders::_1));
 }
 
 void MasternodeManager::on_tableWidget_2_itemSelectionChanged()

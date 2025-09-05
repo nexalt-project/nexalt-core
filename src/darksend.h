@@ -285,7 +285,7 @@ public:
         cachedLastSuccess = 0;
         cachedNumBlocks = 0;
         unitTest = false;
-        CTransaction(txCollateral) = CTransaction();
+        txCollateral = CMutableTransaction();
         minBlockSpacing = 1;
         nDsqCount = 0;
         lastNewBlock = 0;
